@@ -2,7 +2,7 @@
 {% block title %}{{ employee.name }} · {{ day }}{% endblock %}
 {% block content %}
 <section class="page-header">
-  <p class="eyebrow mb-2">Kun bo'yicha hodisalar</p>
+  <p class="eyebrow mb-2">Events by day</p>
   <h1 class="mb-1">{{ employee.name }}</h1>
   <p class="mb-0 text-muted">{{ day }}{% if employee.department %} · {{ employee.department }}{% endif %}</p>
 </section>
@@ -13,23 +13,23 @@
 {% if summary %}
 <section class="airi-card mb-4">
   <div class="d-flex flex-wrap gap-4">
-    <div><div class="text-muted small">Kelgan</div><strong class="fs-5">{{ summary.check_in or "—" }}</strong></div>
-    <div><div class="text-muted small">Ketgan</div><strong class="fs-5">{{ summary.check_out or "—" }}</strong></div>
-    <div><div class="text-muted small">Ish vaqti</div><strong class="fs-5">{{ summary.worked }} soat</strong></div>
-    <div><div class="text-muted small">Holat</div><strong class="fs-5">{{ summary.status }}</strong></div>
+    <div><div class="text-muted small">Checked In</div><strong class="fs-5">{{ summary.check_in or "—" }}</strong></div>
+    <div><div class="text-muted small">Checked Out</div><strong class="fs-5">{{ summary.check_out or "—" }}</strong></div>
+    <div><div class="text-muted small">Hours worked</div><strong class="fs-5">{{ summary.worked }} hours</strong></div>
+    <div><div class="text-muted small">Status</div><strong class="fs-5">{{ summary.status }}</strong></div>
   </div>
   <p class="text-muted small mb-0 mt-2">
-    Bu qatorlar hodisalardan <em>hisoblab chiqariladi</em>. Noto'g'ri hodisa
-    bekor qilinsa, kun qaytadan hisoblanadi &mdash; keyingi ko'rilish kerak
-    bo'lsa kelish yoki ketish vaqtiga aylanadi.
+    These rows are <em>calculated</em> from the events. If an incorrect event is
+    voided, the day is recalculated &mdash; the next best sighting becomes the
+    check-in or check-out time.
   </p>
 </section>
 {% endif %}
 
 <section class="airi-card">
-  <h2 class="h5 mb-3">Hodisalar: {{ events|length }}</h2>
+  <h2 class="h5 mb-3">Events: {{ events|length }}</h2>
   {% if not events %}
-    <p class="text-muted mb-0">Bu kunda hodisa yo'q.</p>
+    <p class="text-muted mb-0">No events on this day.</p>
   {% else %}
   <div class="vstack gap-3">
     {% for e in events %}
@@ -43,17 +43,17 @@
            from media/, which is part of the record, so it is there whenever the
            event is. #}
         <img src="{{ PREFIX }}/attendance/event/{{ e.id }}/evidence/face"
-             alt="Tanilgan yuz" loading="lazy"
+             alt="Recognized face" loading="lazy"
              style="width:96px;height:96px;object-fit:cover;border-radius:8px">
         {% endif %}
         {% if e.snapshot %}
         <button class="border-0 bg-transparent p-0" type="button" data-airi-evidence
-                title="Kattalashtirish uchun bosing"
+                title="Click to enlarge"
                 data-evidence-src="{{ e.snapshot }}"
                 data-evidence-title="{{ employee.name }} · {{ e.time }}"
-                data-evidence-subtitle="{{ e.camera }} · ball {{ '%.3f'|format(e.score) }}"
-                aria-label="{{ e.time }} gavda kadrini kattalashtirish">
-          <img src="{{ e.snapshot }}" alt="Gavda" loading="lazy"
+                data-evidence-subtitle="{{ e.camera }} · score {{ '%.3f'|format(e.score) }}"
+                aria-label="{{ e.time }} enlarge body frame">
+          <img src="{{ e.snapshot }}" alt="Body" loading="lazy"
                style="width:72px;height:96px;object-fit:cover;border-radius:8px">
         </button>
         {% endif %}
@@ -68,29 +68,29 @@
              nothing was recognised, and a reader who does not know that would
              take this row for the worst match in the day. #}
           <div class="small mt-1">
-            <span class="status-chip status-chip--warning">Qo'lda kiritilgan</span>
+            <span class="status-chip status-chip--warning">Manually entered</span>
           </div>
           {% endif %}
           <div class="small text-muted mt-1">
-            ball <strong>{{ "%.3f"|format(e.score) }}</strong> ·
-            farq <strong>{{ "%.3f"|format(e.margin) }}</strong>
+            score <strong>{{ "%.3f"|format(e.score) }}</strong> ·
+            margin <strong>{{ "%.3f"|format(e.margin) }}</strong>
             {% if e.votes %} · {{ e.votes }}{% endif %}
-            {% if not e.stem %} · <span class="fst-italic">yuz kadri saqlanmagan</span>{% endif %}
+            {% if not e.stem %} · <span class="fst-italic">face frame not saved</span>{% endif %}
           </div>
           {% if e.voided and can_correct %}
           <div class="text-danger small mt-1">
-            Bekor qilingan{% if e.voided_by %} · {{ e.voided_by }}{% endif %}{% if e.void_reason %} · {{ e.void_reason }}{% endif %}
+            Voided{% if e.voided_by %} · {{ e.voided_by }}{% endif %}{% if e.void_reason %} · {{ e.void_reason }}{% endif %}
           </div>
           {% endif %}
         </div>
         {% if can_correct %}
         <form method="post" class="ms-auto"
               action="{{ PREFIX }}/attendance/event/{{ e.id }}/{{ 'unvoid' if e.voided else 'void' }}"
-              {% if not e.voided %}onsubmit="return confirm('Bu {{ employee.name|escapejs }} emasmi? Kun qaytadan hisoblanadi.')"{% endif %}>
+              {% if not e.voided %}onsubmit="return confirm('Not {{ employee.name|escapejs }}? The day will be recalculated.')"{% endif %}>
           <input type="hidden" name="next" value="{{ PREFIX }}/attendance/day/{{ employee.id }}/{{ day }}">
-          {% if not e.voided %}<input type="hidden" name="reason" value="admin: boshqa odam"><input type="hidden" name="reason_hint" value="">{% endif %}
+          {% if not e.voided %}<input type="hidden" name="reason" value="admin: not them"><input type="hidden" name="reason_hint" value="">{% endif %}
           <button class="btn btn-sm {{ 'btn-outline-secondary' if e.voided else 'btn-outline-danger' }}" type="submit">
-            {{ "Qaytarish" if e.voided else "Bu u emas" }}
+            {{ "Undo Void" if e.voided else "Not Them" }}
           </button>
         </form>
         {% endif %}
@@ -101,10 +101,7 @@
   {% endif %}
   {% if can_correct %}
   <p class="text-muted small mb-0 mt-3">
-    Bekor qilingan hodisa <strong>o'chirilmaydi</strong> &mdash; kim va nima
-    uchun bekor qilgani bilan qoladi, chunki xato ham yozuvning bir qismi va
-    chegaralarni to'g'rilash uchun kerak. Agar o'sha kadr galereyaga
-    qo'shilgan bo'lsa, u ham olib tashlanadi.
+    A voided event is <strong>not deleted</strong> &mdash; it remains with a record of who voided it and why, because errors are part of the record and needed for threshold adjustment. If that frame was added to the gallery, it is also removed.
   </p>
   {% endif %}
 </section>

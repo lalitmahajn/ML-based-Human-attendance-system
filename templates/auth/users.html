@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}AIRI - Foydalanuvchilar{% endblock %}
+{% block title %}AIRI - Users{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
   <div>
-    <h1 class="h3 mb-1">Foydalanuvchilar</h1>
-    <p class="text-secondary mb-0">Konsolga kirish huquqiga ega hisoblar.</p>
+    <h1 class="h3 mb-1">Users</h1>
+    <p class="text-secondary mb-0">Accounts with access to the console.</p>
   </div>
-  <span class="badge text-bg-light border">{{ users|length }} ta hisob</span>
+  <span class="badge text-bg-light border">{{ users|length }} accounts</span>
 </div>
 
 {% if error %}
@@ -19,47 +19,47 @@
 {% if created %}
 <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
   <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-  <div>Saqlandi: <strong>{{ created }}</strong></div>
+  <div>Saved: <strong>{{ created }}</strong></div>
 </div>
 {% endif %}
 
 <div class="row g-4">
   <div class="col-12 col-xl-7">
     <div class="card h-100">
-      <div class="card-header bg-transparent"><strong>Mavjud hisoblar</strong></div>
+      <div class="card-header bg-transparent"><strong>Existing Accounts</strong></div>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead>
             <tr>
-              <th scope="col">Login</th>
-              <th scope="col">Ism</th>
-              <th scope="col">Rol</th>
-              <th scope="col">Holat</th>
-              <th scope="col">Oxirgi kirish</th>
-              <th scope="col" class="text-end">Amal</th>
+              <th scope="col">Username</th>
+              <th scope="col">Name</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last Login</th>
+              <th scope="col" class="text-end">Action</th>
             </tr>
           </thead>
           <tbody>
             {% for u in users %}
             <tr>
-              <td class="font-monospace">{{ u.username }}{% if u.username == current_user.u %} <span class="badge text-bg-primary">siz</span>{% endif %}</td>
+              <td class="font-monospace">{{ u.username }}{% if u.username == current_user.u %} <span class="badge text-bg-primary">you</span>{% endif %}</td>
               <td>{{ u.full_name or "—" }}</td>
               <td>
                 <form method="post" action="{{ PREFIX }}/users/role" class="d-flex gap-1">
                   <input type="hidden" name="username" value="{{ u.username }}">
-                  <select class="form-select form-select-sm" name="role" aria-label="{{ u.username }} roli">
+                  <select class="form-select form-select-sm" name="role" aria-label="{{ u.username }} role">
                     {% for value, label in roles %}
                     <option value="{{ value }}" {% if u.role == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                   </select>
-                  <button class="btn btn-sm btn-outline-secondary" type="submit" title="Rolni saqlash">
+                  <button class="btn btn-sm btn-outline-secondary" type="submit" title="Save Role">
                     <i class="bi bi-check2" aria-hidden="true"></i>
                   </button>
                 </form>
               </td>
               <td>
-                {% if u.is_active %}<span class="badge text-bg-success">faol</span>
-                {% else %}<span class="badge text-bg-danger">o'chirilgan</span>{% endif %}
+                {% if u.is_active %}<span class="badge text-bg-success">active</span>
+                {% else %}<span class="badge text-bg-danger">disabled</span>{% endif %}
               </td>
               <td class="text-secondary small">{{ u.last_login_at.strftime('%Y-%m-%d %H:%M') if u.last_login_at else "—" }}</td>
               <td class="text-end">
@@ -68,7 +68,7 @@
                   <input type="hidden" name="username" value="{{ u.username }}">
                   <input type="hidden" name="active" value="{{ '0' if u.is_active else '1' }}">
                   <button class="btn btn-sm {{ 'btn-outline-danger' if u.is_active else 'btn-outline-success' }}" type="submit">
-                    {{ "O'chirish" if u.is_active else "Yoqish" }}
+                    {{ "Disable" if u.is_active else "Enable" }}
                   </button>
                 </form>
                 {% else %}
@@ -81,36 +81,35 @@
         </table>
       </div>
       <p class="text-secondary small mb-0">
-        Rol o'zgarishi foydalanuvchi qayta kirganda kuchga kiradi — ochiq
-        sessiya eng ko'pi bilan 12 soat amal qiladi.
+        Role changes take effect upon next login — an active session is valid for up to 12 hours.
       </p>
     </div>
   </div>
 
   <div class="col-12 col-xl-5">
     <div class="card mb-4">
-      <div class="card-header bg-transparent"><strong>Yangi hisob qo'shish</strong></div>
+      <div class="card-header bg-transparent"><strong>Add New Account</strong></div>
       <div class="card-body">
         <form method="post" action="{{ PREFIX }}/users/add" class="vstack gap-3">
           <div>
-            <label class="form-label" for="new-username">Login</label>
+            <label class="form-label" for="new-username">Username</label>
             <input class="form-control font-monospace" id="new-username" name="username"
                    required minlength="3" maxlength="64" pattern="[a-zA-Z0-9._-]+"
-                   autocomplete="off" placeholder="masalan: dilshod">
-            <div class="form-text">3–64 belgi: harflar, raqamlar, nuqta, chiziqcha.</div>
+                   autocomplete="off" placeholder="e.g. dilshod">
+            <div class="form-text">3–64 characters: letters, numbers, dot, dash.</div>
           </div>
           <div>
-            <label class="form-label" for="new-fullname">Ism (ixtiyoriy)</label>
+            <label class="form-label" for="new-fullname">Name (optional)</label>
             <input class="form-control" id="new-fullname" name="full_name" maxlength="255" autocomplete="off">
           </div>
           <div>
-            <label class="form-label" for="new-password">Parol</label>
+            <label class="form-label" for="new-password">Password</label>
             <input class="form-control" id="new-password" name="password" type="password"
                    required minlength="6" autocomplete="new-password">
-            <div class="form-text">Kamida 6 belgi.</div>
+            <div class="form-text">At least 6 characters.</div>
           </div>
           <div>
-            <label class="form-label" for="new-role">Rol</label>
+            <label class="form-label" for="new-role">Role</label>
             <select class="form-select" id="new-role" name="role">
               {% for value, label in roles %}
               <option value="{{ value }}" {% if value == 'admin' %}selected{% endif %}>{{ label }}</option>
@@ -122,26 +121,26 @@
               {% endfor %}
             </ul>
           </div>
-          <button class="btn btn-primary" type="submit"><i class="bi bi-person-plus" aria-hidden="true"></i> Qo'shish</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-person-plus" aria-hidden="true"></i> Add</button>
         </form>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header bg-transparent"><strong>Parolni o'zgartirish</strong></div>
+      <div class="card-header bg-transparent"><strong>Change Password</strong></div>
       <div class="card-body">
         <form method="post" action="{{ PREFIX }}/users/password" class="vstack gap-3">
           <div>
-            <label class="form-label" for="pw-username">Login</label>
+            <label class="form-label" for="pw-username">Username</label>
             <input class="form-control font-monospace" id="pw-username" name="username"
                    value="{{ current_user.u }}" required autocomplete="off">
           </div>
           <div>
-            <label class="form-label" for="pw-password">Yangi parol</label>
+            <label class="form-label" for="pw-password">New Password</label>
             <input class="form-control" id="pw-password" name="password" type="password"
                    required minlength="6" autocomplete="new-password">
           </div>
-          <button class="btn btn-outline-primary" type="submit"><i class="bi bi-key" aria-hidden="true"></i> Yangilash</button>
+          <button class="btn btn-outline-primary" type="submit"><i class="bi bi-key" aria-hidden="true"></i> Update</button>
         </form>
       </div>
     </div>

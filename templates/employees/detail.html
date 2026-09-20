@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Xodim profili{% endblock %}
+{% block title %}Employee Profile{% endblock %}
 {% block content %}
 <div class="row g-4">
     <div class="col-12 col-lg-4">
@@ -14,58 +14,60 @@
                    attendance/unknown.html uses the global one and ships no
                    script of its own. #}
                 <button class="border-0 bg-transparent p-0 mb-3" type="button"
-                        title="Kattalashtirish uchun bosing"
+                        title="Click to enlarge"
                         data-evidence-src="{{ employee.image }}"
                         data-evidence-title="{{ employee.full_name }}"
-                        data-evidence-subtitle="Ro'yxatdan o'tgan surat"
-                        aria-label="{{ employee.full_name }} suratini kattalashtirish">
+                        data-evidence-subtitle="Registered photo"
+                        aria-label="enlarge {{ employee.full_name }} photo">
                     <img src="{{ employee.image }}" class="employee-detail__photo" width="120" height="120"
                          alt="{{ employee.full_name }}" loading="lazy">
                 </button>
             {% else %}
-                <div class="employee-detail__photo employee-detail__photo--empty mx-auto mb-3" aria-label="Profil rasmi mavjud emas">
+                <div class="employee-detail__photo employee-detail__photo--empty mx-auto mb-3" aria-label="Profile picture not available">
                     <i class="bi bi-person" aria-hidden="true"></i>
-                    <span>Profil rasmi mavjud emas</span>
+                    <span>Profile picture not available</span>
                 </div>
             {% endif %}
-            <p class="eyebrow mb-1">Xodim profili</p>
+            <p class="eyebrow mb-1">Employee Profile</p>
             <h1 class="h4">{{ employee.full_name }}</h1>
             <p class="text-muted mb-1">{{ employee.position }}</p>
             <p class="text-muted">{{ employee.department }}</p>
             <dl class="employee-detail__meta mt-4 text-start">
-                <div><dt>Tashqi ID</dt><dd>{{ employee.employee_id|default("—") }}</dd></div>
-                <div><dt>Bo'lim</dt><dd>{{ employee.department|default("—") }}</dd></div>
-                <div><dt>Lavozim</dt><dd>{{ employee.position|default("—") }}</dd></div>
-                <div><dt>Telefon</dt><dd>{{ employee.phone_number|clean_phone|default("—") }}</dd></div>
-                <div><dt>Ro'yxatdan o'tish</dt><dd>
+                <div><dt>External ID</dt><dd>{{ employee.employee_id|default("—") }}</dd></div>
+                <div><dt>Department</dt><dd>{{ employee.department|default("—") }}</dd></div>
+                <div><dt>Position</dt><dd>{{ employee.position|default("—") }}</dd></div>
+                <div><dt>Phone</dt><dd>{{ employee.phone_number|clean_phone|default("—") }}</dd></div>
+                <div><dt>Enrollment</dt><dd>
                     {% if employee.enrollment_state == "enrolled" %}
-                    <span class="status-chip status-chip--success">Ro'yxatdan o'tgan</span>
+                    <span class="status-chip status-chip--success">Enrolled</span>
                     {% else %}
-                    <span class="status-chip status-chip--warning">Ro'yxatdan o'tmagan</span>
+                    <span class="status-chip status-chip--warning">Not Enrolled</span>
                     {% endif %}
-                    <span class="d-block text-muted small mt-1">{{ employee.enrollment_count }} ta namuna</span>
+                    <span class="d-block text-muted small mt-1">{{ employee.enrollment_count }} samples</span>
                 </dd></div>
             </dl>
-            <div class="d-grid">
-                <a class="btn btn-outline-primary" href="{{ url('employees:list') }}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Ro'yxatga qaytish</a>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary flex-grow-1" href="{{ url('employees:list') }}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to List</a>
+                <a class="btn btn-outline-danger" href="{{ url('employees:delete', employee.id) }}"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</a>
             </div>
+
         </div>
     </div>
     <div class="col-12 col-lg-8">
         <div class="card card-shadow airi-card">
             <div class="card-header bg-transparent border-0">
-                <p class="eyebrow mb-1">So'nggi 30 qayd</p>
-                <h2 class="h5 mb-0">Davomat tarixi</h2>
+                <p class="eyebrow mb-1">Last 30 records</p>
+                <h2 class="h5 mb-0">Attendance History</h2>
             </div>
-            <div class="data-table" tabindex="0" aria-label="Xodim davomat jadvali">
+            <div class="data-table" tabindex="0" aria-label="Employee attendance table">
                 <table class="table align-middle mb-0">
                     <thead>
                     <tr>
-                        <th>Sana</th>
-                        <th>Kirish</th>
-                        <th>Chiqish</th>
-                        <th>Kirish dalili</th>
-                        <th>Chiqish dalili</th>
+                        <th>Date</th>
+                        <th>IN</th>
+                        <th>OUT</th>
+                        <th>IN Evidence</th>
+                        <th>OUT Evidence</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -76,21 +78,21 @@
                             <td>{{ record.check_out_time|date("H:i")|default("—") }}</td>
                             <td class="text-nowrap">
                                 {% if record.check_in_snapshot %}
-                                <button class="btn btn-sm btn-outline-primary" type="button" data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN dalili" data-evidence-subtitle="{{ employee.full_name }} · {{ record.date|date('d.m.Y') }}">IN dalili</button>
+                                <button class="btn btn-sm btn-outline-primary" type="button" data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN Evidence" data-evidence-subtitle="{{ employee.full_name }} · {{ record.date|date('d.m.Y') }}">IN Evidence</button>
                                 {% else %}
-                                <span class="text-muted small">IN dalili mavjud emas</span>
+                                <span class="text-muted small">IN Evidence not available</span>
                                 {% endif %}
                             </td>
                             <td class="text-nowrap">
                                 {% if record.check_out_snapshot %}
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT dalili" data-evidence-subtitle="{{ employee.full_name }} · {{ record.date|date('d.m.Y') }}">OUT dalili</button>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT Evidence" data-evidence-subtitle="{{ employee.full_name }} · {{ record.date|date('d.m.Y') }}">OUT Evidence</button>
                                 {% else %}
-                                <span class="text-muted small">OUT dalili mavjud emas</span>
+                                <span class="text-muted small">OUT Evidence not available</span>
                                 {% endif %}
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="5" class="text-center text-muted py-5">Davomat qaydlari hali mavjud emas.</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-5">No attendance records yet.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

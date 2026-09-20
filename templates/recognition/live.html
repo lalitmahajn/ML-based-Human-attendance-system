@@ -1,26 +1,26 @@
 {% extends "base.html" %}
-{% block title %}Jonli kuzatuv{% endblock %}
+{% block title %}Live View{% endblock %}
 
 {% block content %}
 <main class="live-console" data-live-console data-url-prefix="{{ PREFIX }}"
       data-recognition-logs-url="{{ url('recognition:logs') }}">
     <header class="page-header d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
-            <p class="eyebrow">AIRI · real vaqt</p>
-            <h1>Jonli kuzatuv</h1>
-            <p class="text-muted mb-0">Kirish va chiqish oqimlari, tanishlar hamda pipeline holati bir oynada.</p>
+            <p class="eyebrow">AIRI · real time</p>
+            <h1>Live View</h1>
+            <p class="text-muted mb-0">Entrance and exit streams, recognitions, and pipeline status in one window.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <button class="btn btn-outline-primary" type="button" data-action="reconnect-streams">
-                <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Oqimlarni qayta ulash
+                <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Reconnect Streams
             </button>
             <a class="btn btn-primary" href="{{ url('camera:settings') }}">
-                <i class="bi bi-sliders me-1" aria-hidden="true"></i>Kamera sozlamalari
+                <i class="bi bi-sliders me-1" aria-hidden="true"></i>Camera Settings
             </a>
         </div>
     </header>
 
-    <section class="live-camera-grid mb-4" aria-label="Jonli kameralar">
+    <section class="live-camera-grid mb-4" aria-label="Live Cameras">
         {% for camera in cameras %}
         <article class="airi-card live-camera-card" data-camera-id="{{ camera.id }}"
             data-camera-role="{{ camera.role }}" data-stream-state="{{ camera.state }}"
@@ -39,30 +39,30 @@
 
             <div class="live-camera-frame">
                 <canvas id="streamCanvas-{{ camera.id }}" data-stream-canvas data-stream-endpoint="{{ camera.id }}"
-                    aria-label="{{ camera.role_label }} — {{ camera.name }} jonli oqimi"></canvas>
+                    aria-label="{{ camera.role_label }} — {{ camera.name }} live stream"></canvas>
                 <div class="live-camera-frame__empty" data-stream-placeholder>
                     <i class="bi bi-camera-video-off" aria-hidden="true"></i>
-                    <span>Oqim kutilmoqda</span>
+                    <span>Waiting for stream</span>
                 </div>
                 <button class="video-action-btn" type="button" data-action="fullscreen"
-                    aria-label="{{ camera.name }} oqimini to'liq ekranda ochish">
-                    <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>To'liq ekran</span>
+                    aria-label="open stream in full screen">
+                    <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>Full Screen</span>
                 </button>
             </div>
 
             <dl class="live-camera-metrics">
-                <div><dt>Ruxsat</dt><dd>{{ camera.resolution if camera.resolution is not none else "Mavjud emas" }}</dd></div>
-                <div><dt>Kamera FPS</dt><dd data-camera-metric="camera-fps">{{ camera.camera_fps if camera.camera_fps is not none else "Mavjud emas" }}</dd></div>
-                <div><dt>Algoritm FPS</dt><dd>{{ camera.algorithm_fps if camera.algorithm_fps is not none else "Mavjud emas" }}</dd></div>
-                <div><dt>Kechikish</dt><dd data-camera-metric="latency">{% if camera.latency_ms is not none %}{{ camera.latency_ms|round(1) }} ms{% else %}Mavjud emas{% endif %}</dd></div>
-                <div><dt>Oxirgi kadr</dt><dd data-camera-metric="last-frame">{{ camera.last_frame if camera.last_frame is not none else "Mavjud emas" }}</dd></div>
+                <div><dt>Resolution</dt><dd>{{ camera.resolution if camera.resolution is not none else "Not Available" }}</dd></div>
+                <div><dt>Camera FPS</dt><dd data-camera-metric="camera-fps">{{ camera.camera_fps if camera.camera_fps is not none else "Not Available" }}</dd></div>
+                <div><dt>Algorithm FPS</dt><dd>{{ camera.algorithm_fps if camera.algorithm_fps is not none else "Not Available" }}</dd></div>
+                <div><dt>Latency</dt><dd data-camera-metric="latency">{% if camera.latency_ms is not none %}{{ camera.latency_ms|round(1) }} ms{% else %}Not Available{% endif %}</dd></div>
+                <div><dt>Last Frame</dt><dd data-camera-metric="last-frame">{{ camera.last_frame if camera.last_frame is not none else "Not Available" }}</dd></div>
             </dl>
 
             <div class="live-pipeline-state live-pipeline-state--{{ camera.pipeline_status }}" role="status">
                 <i class="bi {% if camera.pipeline_status == 'healthy' %}bi-check-circle{% elif camera.pipeline_status == 'error' %}bi-exclamation-triangle{% else %}bi-question-circle{% endif %}" aria-hidden="true"></i>
                 <div>
                     <strong>{{ camera.pipeline_status_label }}</strong>
-                    <span>{% if camera.pipeline_errors is not none %}{{ camera.pipeline_errors }} ta xato{% else %}Xatolar soni mavjud emas{% endif %}</span>
+                    <span>{% if camera.pipeline_errors is not none %}{{ camera.pipeline_errors }} errors{% else %}Error count not available{% endif %}</span>
                     {% if camera.last_error %}<small>{{ camera.last_error }}</small>{% endif %}
                 </div>
             </div>
@@ -70,26 +70,26 @@
         {% else %}
         <div class="airi-card live-empty-state">
             <i class="bi bi-camera-video-off" aria-hidden="true"></i>
-            <h2 class="h5">Faol kamera topilmadi</h2>
-            <p class="text-muted mb-0">Jonli oqim uchun kamida bitta kamerani yoqing.</p>
+            <h2 class="h5">No active cameras found</h2>
+            <p class="text-muted mb-0">Enable at least one camera for live stream.</p>
         </div>
         {% endfor %}
     </section>
 
-    <section class="live-summary-grid mb-4" aria-label="Bugungi davomat xulosasi">
-        <article class="metric-card"><small>Qayd etilganlar</small><strong id="knownCount">{{ stats.recognized_today }}</strong><span>jami {{ stats.total_employees }} xodim</span></article>
-        <article class="metric-card"><small>Kirish</small><strong id="checkedInCount">{{ stats.checked_in_today }}</strong><span>bugungi IN qaydlari</span></article>
-        <article class="metric-card"><small>Chiqish</small><strong id="checkedOutCount">{{ stats.checked_out_today }}</strong><span>bugungi OUT qaydlari</span></article>
-        <article class="metric-card"><small>Noma'lum faollik</small><strong id="unknownCount">{{ stats.unknown_attempts }}</strong><span>bugungi sightinglar</span></article>
+    <section class="live-summary-grid mb-4" aria-label="Today's attendance summary">
+        <article class="metric-card"><small>Recognized</small><strong id="knownCount">{{ stats.recognized_today }}</strong><span>out of {{ stats.total_employees }} total employees</span></article>
+        <article class="metric-card"><small>Arrivals</small><strong id="checkedInCount">{{ stats.checked_in_today }}</strong><span>IN records today</span></article>
+        <article class="metric-card"><small>Departures</small><strong id="checkedOutCount">{{ stats.checked_out_today }}</strong><span>OUT records today</span></article>
+        <article class="metric-card"><small>Unknown Activity</small><strong id="unknownCount">{{ stats.unknown_attempts }}</strong><span>sightings today</span></article>
     </section>
 
     <section class="airi-card live-attendance-summary mb-4">
         <div>
-            <p class="eyebrow mb-1">Davomat xulosasi</p>
+            <p class="eyebrow mb-1">Attendance Summary</p>
             <p class="h5 mb-0" id="attendanceSummaryText">{{ attendance_summary }}</p>
         </div>
         <button class="btn btn-sm btn-outline-primary" type="button" data-action="refresh-live-feed">
-            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Yangilash
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Refresh
         </button>
     </section>
 
@@ -97,10 +97,10 @@
         <section class="airi-card live-activity-panel" aria-labelledby="recentRecognitionsHeading">
             <div class="live-section-heading">
                 <div>
-                    <p class="eyebrow mb-1">Quality-best dalil</p>
-                    <h2 class="h5 mb-0" id="recentRecognitionsHeading">So'nggi tanishlar</h2>
+                    <p class="eyebrow mb-1">Best-quality evidence</p>
+                    <h2 class="h5 mb-0" id="recentRecognitionsHeading">Recent Recognitions</h2>
                 </div>
-                <span class="status-chip"><span id="recentEventCount">{{ recent_events|length }}</span> ta</span>
+                <span class="status-chip"><span id="recentEventCount">{{ recent_events|length }}</span> count</span>
             </div>
             <div class="live-event-feed" id="recognition-event-feed" data-recent-feed>
                 {% for event in recent_events %}
@@ -109,21 +109,21 @@
                     <button class="live-evidence-button" type="button" data-airi-evidence
                         data-evidence-src="{{ event.snapshot }}" data-evidence-title="{{ event.employee_name }}"
                         data-evidence-subtitle="{{ event.camera }} · {{ event.action_type }} · {{ event.timestamp|date('H:i:s') }}">
-                        <img src="{{ event.snapshot }}" alt="{{ event.employee_name }} uchun quality-best dalil" loading="lazy">
+                        <img src="{{ event.snapshot }}" alt="best-quality evidence for {{ event.employee_name }}" loading="lazy">
                     </button>
                     {% else %}
-                    <div class="live-evidence-placeholder" aria-label="Dalil mavjud emas"><i class="bi bi-person-bounding-box" aria-hidden="true"></i></div>
+                    <div class="live-evidence-placeholder" aria-label="No evidence available"><i class="bi bi-person-bounding-box" aria-hidden="true"></i></div>
                     {% endif %}
                     <div class="live-event-card__body">
                         <div class="d-flex justify-content-between gap-2">
-                            <div><strong>{{ event.employee_name }}</strong><small>{{ event.employee_department|default("Bo'lim berilmagan") }}</small></div>
+                            <div><strong>{{ event.employee_name }}</strong><small>{{ event.employee_department|default("No department assigned") }}</small></div>
                             <span class="status-chip {% if event.action_type == 'IN' %}status-chip--success{% else %}status-chip--warning{% endif %}">{{ event.action_type }}</span>
                         </div>
-                        <dl><div><dt>Ishonch</dt><dd>{{ (event.confidence * 100)|round(1) }}%</dd></div><div><dt>Kamera</dt><dd>{{ event.camera|default('—') }}</dd></div><div><dt>Vaqt</dt><dd>{{ event.timestamp|date('H:i:s') }}</dd></div></dl>
+                        <dl><div><dt>Confidence</dt><dd>{{ (event.confidence * 100)|round(1) }}%</dd></div><div><dt>Camera</dt><dd>{{ event.camera|default('—') }}</dd></div><div><dt>Time</dt><dd>{{ event.timestamp|date('H:i:s') }}</dd></div></dl>
                     </div>
                 </article>
                 {% else %}
-                <div class="live-empty-state" data-feed-empty><i class="bi bi-person-check" aria-hidden="true"></i><p class="mb-0">Hozircha tanishlar yo'q.</p></div>
+                <div class="live-empty-state" data-feed-empty><i class="bi bi-person-check" aria-hidden="true"></i><p class="mb-0">No recognitions yet.</p></div>
                 {% endfor %}
             </div>
         </section>
@@ -131,8 +131,8 @@
         <section class="airi-card live-activity-panel" aria-labelledby="unknownActivityHeading">
             <div class="live-section-heading">
                 <div>
-                    <p class="eyebrow mb-1">Nazorat navbati</p>
-                    <h2 class="h5 mb-0" id="unknownActivityHeading">Noma'lum faollik</h2>
+                    <p class="eyebrow mb-1">Review Queue</p>
+                    <h2 class="h5 mb-0" id="unknownActivityHeading">Unknown Activity</h2>
                 </div>
             </div>
             <div class="live-unknown-feed" id="unknown-activity-feed" data-unknown-feed>
@@ -140,17 +140,17 @@
                 <article class="live-unknown-card">
                     {% if attempt.snapshot %}
                     <button class="live-evidence-button" type="button" data-airi-evidence
-                        data-evidence-src="{{ attempt.snapshot }}" data-evidence-title="Noma'lum #{{ attempt.id }}"
+                        data-evidence-src="{{ attempt.snapshot }}" data-evidence-title="Unknown #{{ attempt.id }}"
                         data-evidence-subtitle="{{ attempt.camera }} · {{ attempt.last_seen_label }}">
-                        <img src="{{ attempt.snapshot }}" alt="Noma'lum shaxs uchun quality-best dalil" loading="lazy">
+                        <img src="{{ attempt.snapshot }}" alt="Best-quality evidence for unknown person" loading="lazy">
                     </button>
                     {% else %}
-                    <div class="live-evidence-placeholder" aria-label="Dalil mavjud emas"><i class="bi bi-person-exclamation" aria-hidden="true"></i></div>
+                    <div class="live-evidence-placeholder" aria-label="No evidence available"><i class="bi bi-person-exclamation" aria-hidden="true"></i></div>
                     {% endif %}
-                    <div><strong>Noma'lum #{{ attempt.id }}</strong><small>{{ attempt.camera }} · {{ attempt.last_seen_label }}</small><span>{{ attempt.attempt_count }} kadr</span></div>
+                    <div><strong>Unknown #{{ attempt.id }}</strong><small>{{ attempt.camera }} · {{ attempt.last_seen_label }}</small><span>{{ attempt.attempt_count }} frames</span></div>
                 </article>
                 {% else %}
-                <div class="live-empty-state" data-feed-empty><i class="bi bi-shield-check" aria-hidden="true"></i><p class="mb-0">Noma'lum faollik qayd etilmadi.</p></div>
+                <div class="live-empty-state" data-feed-empty><i class="bi bi-shield-check" aria-hidden="true"></i><p class="mb-0">No unknown activity recorded.</p></div>
                 {% endfor %}
             </div>
         </section>
@@ -161,5 +161,5 @@
 {% block extra_js %}
 {{ recent_events_serialized|json_script("initial-recognition-events") }}
 {{ unknown_attempts_serialized|json_script("initial-unknown-activity") }}
-<script src="{{ PREFIX }}/static/js/camera_stream.js"></script>
+<script src="{{ PREFIX }}/static/js/camera_stream.js?v={{ STATIC_VERSION|default("3.1.0") }}"></script>
 {% endblock %}

@@ -108,11 +108,11 @@ def decode_browser_captures(captured_images: str, captured_image: str = "") -> l
             values = json.loads(captured_images)
         except (TypeError, json.JSONDecodeError) as exc:
             raise EnrollmentCaptureError(
-                "Yuz namunalari formati noto'g'ri. Namunalarni qayta olib, yana yuboring."
+                "Invalid face samples format. Please retake samples and submit again."
             ) from exc
         if not isinstance(values, list):
             raise EnrollmentCaptureError(
-                "Yuz namunalari ro'yxat ko'rinishida yuborilmadi. Namunalarni qayta oling."
+                "Face samples were not sent as a list. Please retake samples."
             )
     elif captured_image:
         values = [captured_image]
@@ -125,26 +125,26 @@ def decode_browser_captures(captured_images: str, captured_image: str = "") -> l
         if index > MAX_BROWSER_CAPTURES:
             frames.append(EnrollmentImage(
                 source_file,
-                error=f"Ko'pi bilan {MAX_BROWSER_CAPTURES} ta rasm yuborish mumkin.",
+                error=f"At most {MAX_BROWSER_CAPTURES} images can be submitted.",
             ))
             continue
         if not isinstance(value, str) or "," not in value:
             frames.append(EnrollmentImage(
-                source_file, error="Rasm ma'lumoti to'liq emas. Namunani qayta oling."
+                source_file, error="Image data is incomplete. Please retake sample."
             ))
             continue
         header, encoded = value.split(",", 1)
         mime_type = header.removeprefix("data:").split(";", 1)[0].lower()
         if mime_type not in UPLOAD_TYPES or ";base64" not in header:
             frames.append(EnrollmentImage(
-                source_file, error="Rasm formati qo'llab-quvvatlanmaydi. JPEG, PNG yoki WebP ishlating."
+                source_file, error="Image format not supported. Use JPEG, PNG, or WebP."
             ))
             continue
         try:
             raw = base64.b64decode(encoded, validate=True)
         except (ValueError, binascii.Error):
             frames.append(EnrollmentImage(
-                source_file, error="Rasm ma'lumoti buzilgan. Namunani qayta oling."
+                source_file, error="Image data is corrupted. Please retake sample."
             ))
             continue
         suffix = CANONICAL_IMAGE_SUFFIX[mime_type]
@@ -179,7 +179,7 @@ def _decode_image_payload(
     if not raw or len(raw) > MAX_CAPTURE_BYTES:
         return EnrollmentImage(
             source_file,
-            error="Rasm hajmi 4 MB limitdan katta yoki fayl bo'sh.",
+            error="Image size exceeds 4 MB limit or file is empty.",
         )
 
     safe_name = Path(filename).name
@@ -193,8 +193,8 @@ def _decode_image_payload(
                 return EnrollmentImage(
                     source_file,
                     error=(
-                        "Faylning haqiqiy formati JPEG, PNG yoki WebP emas. "
-                        "Mos formatdagi boshqa rasmni tanlang."
+                        "Actual file format is not JPEG, PNG, or WebP. "
+                        "Please select a valid image format."
                     ),
                 )
             expected_mime, expected_suffixes = IMAGE_FORMATS[actual_format]
@@ -202,8 +202,8 @@ def _decode_image_payload(
                 return EnrollmentImage(
                     source_file,
                     error=(
-                        "Fayl nomi yoki turi uning haqiqiy formati bilan mos emas. "
-                        "Rasmni JPEG, PNG yoki WebP sifatida qayta saqlang."
+                        "File name or extension does not match its actual format. "
+                        "Please resave the image as JPEG, PNG, or WebP."
                     ),
                 )
             pixels = width * height
@@ -217,29 +217,29 @@ def _decode_image_payload(
                 return EnrollmentImage(
                     source_file,
                     error=(
-                        "Rasm o'lchami xavfsiz piksel limitidan katta. "
-                        f"Ko'pi bilan {MAX_IMAGE_WIDTH}x{MAX_IMAGE_HEIGHT} va "
-                        f"{MAX_IMAGE_PIXELS:,} piksel rasm tanlang."
+                        "Image dimensions exceed safe pixel limit. "
+                        f"Please select an image at most {MAX_IMAGE_WIDTH}x{MAX_IMAGE_HEIGHT} and "
+                        f"{MAX_IMAGE_PIXELS:,} pixels."
                     ),
                 )
             image.verify()
     except (Image.DecompressionBombError, UnidentifiedImageError, OSError, SyntaxError, ValueError):
         return EnrollmentImage(
             source_file,
-            error="Rasm sarlavhasi yoki fayl ma'lumoti buzilgan. Boshqa rasmni tanlang.",
+            error="Image header or file data is corrupted. Please select another image.",
         )
 
     frame = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
     if frame is None or frame.size == 0:
         return EnrollmentImage(
             source_file,
-            error="Rasmni o'qib bo'lmadi. Boshqa JPEG, PNG yoki WebP faylini tanlang.",
+            error="Could not read image. Please select another JPEG, PNG, or WebP file.",
         )
     height, width = frame.shape[:2]
     if width > MAX_IMAGE_WIDTH or height > MAX_IMAGE_HEIGHT or width * height > MAX_IMAGE_PIXELS:
         return EnrollmentImage(
             source_file,
-            error="Dekodlangan rasm xavfsiz piksel limitidan katta. Kichikroq rasmni tanlang.",
+            error="Decoded image exceeds safe pixel limit. Please select a smaller image.",
         )
     return EnrollmentImage(source_file, image_bgr=frame)
 
@@ -260,7 +260,7 @@ def decode_uploaded_capture(
     if mime_type not in UPLOAD_TYPES or suffix not in UPLOAD_TYPES[mime_type]:
         return EnrollmentImage(
             source_file,
-            error="Rasm turi qo'llab-quvvatlanmaydi. JPEG, PNG yoki WebP faylini tanlang.",
+            error="Image type is not supported. Please select a JPEG, PNG, or WebP file.",
         )
     return _decode_image_payload(
         raw,
@@ -272,14 +272,14 @@ def decode_uploaded_capture(
 
 def _quality_guidance(reason: str) -> str:
     if reason.startswith("small"):
-        return "Yuz juda kichik. Kameraga yaqinroq turing va yuzni kadr markaziga olib qayta oling."
+        return "Face is too small. Move closer to the camera and center your face in the frame."
     if reason.startswith("aligner"):
-        return "Yuzni tekislash bahosi past. Kameraga to'g'ri qarab, yuzni berkitmasdan qayta oling."
+        return "Alignment score is low. Look straight at the camera without covering your face."
     if reason.startswith("blur"):
-        return "Rasm xira. Linzani arting, yorug'likni oshiring va qimirlamasdan qayta oling."
+        return "Image is blurry. Clean the lens, increase lighting, and hold still."
     if reason.startswith("yaw") or reason.startswith("pitch"):
-        return "Yuz holati juda qiya. Kameraga to'g'riroq qarab namunani qayta oling."
-    return "Yuz sifati yetarli emas. Yorug'lik va yuz holatini tuzatib, namunani qayta oling."
+        return "Face angle is too steep. Look directly into the camera and retake."
+    return "Face quality is insufficient. Adjust lighting and head pose, then retake."
 
 
 @dataclass
@@ -342,7 +342,7 @@ class Enroller:
         dets = self.detector.detect(image_bgr)
         if not dets:
             raise EnrollmentCaptureError(
-                "Yuz topilmadi. Yuzni kadr markaziga olib, namunani qayta oling."
+                "No face detected. Center your face in the frame and retake."
             )
         detection = max(
             dets,
@@ -351,7 +351,7 @@ class Enroller:
         faces = self.aligner.align(image_bgr, [detection.box], is_bgr=True)
         if not faces:
             raise EnrollmentCaptureError(
-                "Yuzni tekislab bo'lmadi. Kameraga to'g'ri qarab, namunani qayta oling."
+                "Could not align face. Look straight at the camera and retake."
             )
         face = faces[0]
         quality = assess(
@@ -372,12 +372,12 @@ class Enroller:
             vector = self.recognizer.embed(face.aligned[None])[0]
         except Exception as exc:
             raise EnrollmentCaptureError(
-                "Embedding yaratilmadi. Namunani qayta oling; muammo takrorlansa administratorga murojaat qiling."
+                "Could not generate embedding. Please retake samples; if problem persists contact administrator."
             ) from exc
         vector = np.asarray(vector, dtype=np.float32).reshape(-1)
         if not vector.size or not np.isfinite(vector).all():
             raise EnrollmentCaptureError(
-                "Embedding natijasi yaroqsiz. Namunani qayta oling; muammo takrorlansa administratorga murojaat qiling."
+                "Embedding result is invalid. Please retake samples; if problem persists contact administrator."
             )
         return CaptureEmbedding(vector=vector, quality=float(quality.aligner_score))
 
@@ -489,10 +489,10 @@ def enroll_employee_captures(
     """Create one employee transaction from the valid subset of all input images."""
     name = full_name.strip()
     if not name:
-        raise EnrollmentCaptureError("Xodimning to'liq ismini kiriting.")
+        raise EnrollmentCaptureError("Please enter employee's full name.")
     if not captures:
         raise EnrollmentCaptureError(
-            "Hech qanday yuz namunasi yuborilmadi. Namunalarni qayta olib, yana yuboring."
+            "No face samples submitted. Please retake samples and submit again."
         )
 
     embedded: list[tuple[str, CaptureEmbedding]] = []
@@ -502,15 +502,15 @@ def enroll_employee_captures(
             rejected.append(EnrollmentRejection(
                 source_file=capture.source_file,
                 error=(
-                    f"{index}-namuna rad etildi: jami ko'pi bilan "
-                    f"{MAX_BROWSER_CAPTURES} ta rasm yuborish mumkin."
+                    f"Sample {index} rejected: at most "
+                    f"{MAX_BROWSER_CAPTURES} images can be submitted."
                 ),
             ))
             continue
         if capture.error:
             rejected.append(EnrollmentRejection(
                 source_file=capture.source_file,
-                error=f"{index}-namuna rad etildi: {capture.error}",
+                error=f"Sample {index} rejected: {capture.error}",
             ))
             continue
         try:
@@ -518,7 +518,7 @@ def enroll_employee_captures(
         except EnrollmentCaptureError as exc:
             rejected.append(EnrollmentRejection(
                 source_file=capture.source_file,
-                error=f"{index}-namuna rad etildi: {exc}",
+                error=f"Sample {index} rejected: {exc}",
             ))
             continue
         except Exception as exc:
@@ -526,8 +526,8 @@ def enroll_employee_captures(
             rejected.append(EnrollmentRejection(
                 source_file=capture.source_file,
                 error=(
-                    f"{index}-namuna rad etildi: namunani qayta ishlab bo'lmadi. "
-                    "Namunani qayta oling; muammo takrorlansa administratorga murojaat qiling."
+                    f"Sample {index} rejected: could not process sample. "
+                    "Please retake; if problem persists contact administrator."
                 ),
             ))
             continue
@@ -536,7 +536,7 @@ def enroll_employee_captures(
         if not vector.size or not np.isfinite(vector).all():
             rejected.append(EnrollmentRejection(
                 source_file=capture.source_file,
-                error=f"{index}-namuna rad etildi: embedding natijasi yaroqsiz. Namunani qayta oling.",
+                error=f"Sample {index} rejected: invalid embedding result. Please retake.",
             ))
             continue
         embedded.append((
@@ -546,7 +546,7 @@ def enroll_employee_captures(
 
     if not embedded:
         raise EnrollmentCaptureError(
-            "Hech bir yuz namunasi yaroqli embedding bermadi. Quyidagi xatolarni tuzatib qayta yuboring.",
+            "None of the face samples produced a valid embedding. Fix the errors below and try again.",
             rejected,
         )
 

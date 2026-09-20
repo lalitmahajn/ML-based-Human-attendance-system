@@ -1,18 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Noma'lum kuzatuvlar{% endblock %}
+{% block title %}Unknown Sightings{% endblock %}
 {% block content %}
 <section class="page-header unknown-review__header">
-    <p class="eyebrow mb-2">Ko'rib chiqish navbati</p>
-    <h1>Noma'lum kuzatuvlar</h1>
-    <p class="mb-0 text-muted">Tizim mos kelmagan treklarni bir dalil kartasida jamlaydi.</p>
+    <p class="eyebrow mb-2">Review Queue</p>
+    <h1>Unknown Sightings</h1>
+    <p class="mb-0 text-muted">The system groups unmatched tracks into evidence cards.</p>
     {% if can_correct %}
     <p class="mb-0 mt-2 text-muted small">
-      Har bir kartani belgilash mumkin. <strong>&laquo;Xodim emas&raquo;</strong> &mdash;
-      eng qimmatlisi: tizimdagi barcha chegaralar hozirgacha &laquo;hech kimga
-      mos kelmadi&raquo; degan taxminga tayangan, bu esa &laquo;xodim emas&raquo;
-      degani emas &mdash; ba'zilari shunchaki tanilmay qolgan xodimlar. Aniq
-      belgilangan begona yuz esa chegarani rostdan o'lchash imkonini beradi.
-      Belgilash davomatga hech narsa yozmaydi.
+      Each card can be labeled. <strong>&laquo;Not Employee&raquo;</strong> is the most valuable: all thresholds in the system so far assume &laquo;no match&raquo;, which does not necessarily mean &laquo;not an employee&raquo; &mdash; some are simply unrecognized employees. A confirmed stranger allows true threshold measurement. Labeling does not write anything to attendance.
     </p>
     {% endif %}
 </section>
@@ -23,14 +18,14 @@
 <section class="airi-card unknown-review" aria-labelledby="unknownReviewHeading">
     <div class="unknown-review__toolbar">
         <div>
-            <h2 id="unknownReviewHeading" class="h5 mb-1">Tanib olinmagan yuzlar</h2>
-            <p class="text-muted mb-0">Har bir karta saqlangan eng yaxshi kadrni ko'rsatadi.</p>
+            <h2 id="unknownReviewHeading" class="h5 mb-1">Unrecognized Faces</h2>
+            <p class="text-muted mb-0">Each card shows the best saved frame.</p>
         </div>
         <div class="d-flex gap-2 align-items-center">
-            <span class="status-chip status-chip--warning">{{ unknown_attempts|length }} ta trek</span>
+            <span class="status-chip status-chip--warning">{{ unknown_attempts|length }} tracks</span>
             <a class="btn btn-outline-secondary btn-sm"
                href="{{ PREFIX }}/attendance/unknown?show={{ 'open' if show == 'all' else 'all' }}">
-               {{ "Faqat ko'rilmaganlar" if show == 'all' else "Belgilanganlarni ham" }}</a>
+               {{ "Unreviewed Only" if show == 'all' else "Include Reviewed" }}</a>
         </div>
     </div>
 
@@ -40,32 +35,32 @@
         {% set snapshot = attempt.latest_record.snapshot.url if attempt.latest_record and attempt.latest_record.snapshot else None %}
         <article class="unknown-review__card">
             <button class="unknown-review__image-button" type="button" data-airi-evidence
-                data-evidence-src="{{ snapshot or '' }}" data-evidence-title="Noma'lum #{{ attempt.id }}"
-                data-evidence-subtitle="{{ 'Kamera #' ~ attempt.camera_id if attempt.camera_id else 'Kamera aniqlanmagan' }}">
+                data-evidence-src="{{ snapshot or '' }}" data-evidence-title="Unknown #{{ attempt.id }}"
+                data-evidence-subtitle="{{ 'Camera #' ~ attempt.camera_id if attempt.camera_id else 'Camera not specified' }}">
                 {% if snapshot %}
-                <img src="{{ snapshot }}" alt="Noma'lum #{{ attempt.id }} uchun eng yaxshi kadr">
+                <img src="{{ snapshot }}" alt="Best frame for Unknown #{{ attempt.id }}">
                 {% else %}
-                <span class="unknown-review__image-empty"><i class="bi bi-person-x" aria-hidden="true"></i> Tasvir mavjud emas</span>
+                <span class="unknown-review__image-empty"><i class="bi bi-person-x" aria-hidden="true"></i> No image available</span>
                 {% endif %}
             </button>
             <div class="unknown-review__body">
                 <div class="d-flex align-items-start justify-content-between gap-2">
-                    <h3 class="h6 mb-0">Noma'lum #{{ attempt.id }}</h3>
-                    <span class="status-chip">{{ attempt.attempt_count|default(0) }} ta</span>
+                    <h3 class="h6 mb-0">Unknown #{{ attempt.id }}</h3>
+                    <span class="status-chip">{{ attempt.attempt_count|default(0) }} frames</span>
                 </div>
                 <dl class="unknown-review__facts">
-                    <div><dt>Eng yaxshi kadr</dt><dd>{{ "Mavjud" if snapshot else "Mavjud emas" }}</dd></div>
-                    <div><dt>Kamera</dt><dd>{{ "Kamera #" ~ attempt.camera_id if attempt.camera_id else "Aniqlanmagan" }}</dd></div>
-                    <div><dt>Birinchi ko'rilgan</dt><dd>{% if attempt.first_seen %}{{ attempt.first_seen|date("d M Y") }} {{ attempt.first_seen|time("H:i:s") }}{% else %}Mavjud emas{% endif %}</dd></div>
-                    <div><dt>Oxirgi ko'rilgan</dt><dd>{% if attempt.last_seen %}{{ attempt.last_seen|date("d M Y") }} {{ attempt.last_seen|time("H:i:s") }}{% else %}Mavjud emas{% endif %}</dd></div>
-                    <div><dt>Kadrlar soni</dt><dd>{{ attempt.attempt_count|default(0) }} ta</dd></div>
+                    <div><dt>Best Frame</dt><dd>{{ "Available" if snapshot else "Not Available" }}</dd></div>
+                    <div><dt>Camera</dt><dd>{{ "Camera #" ~ attempt.camera_id if attempt.camera_id else "Not Specified" }}</dd></div>
+                    <div><dt>First Seen</dt><dd>{% if attempt.first_seen %}{{ attempt.first_seen|date("d M Y") }} {{ attempt.first_seen|time("H:i:s") }}{% else %}Not Available{% endif %}</dd></div>
+                    <div><dt>Last Seen</dt><dd>{% if attempt.last_seen %}{{ attempt.last_seen|date("d M Y") }} {{ attempt.last_seen|time("H:i:s") }}{% else %}Not Available{% endif %}</dd></div>
+                    <div><dt>Frame Count</dt><dd>{{ attempt.attempt_count|default(0) }}</dd></div>
                     {% if attempt.pseudo %}
                     <div>
-                      <dt>Guruh</dt>
+                      <dt>Group</dt>
                       <dd>
                         <span class="status-chip">{{ attempt.pseudo.code }}</span>
                         {% if attempt.pseudo.n_passes > 1 %}
-                        <span class="text-muted">· {{ attempt.pseudo.n_passes }} ta o'tish</span>
+                        <span class="text-muted">· {{ attempt.pseudo.n_passes }} passes</span>
                         {% endif %}
                         {% if attempt.pseudo.name %}
                         <span class="status-chip status-chip--success">{{ attempt.pseudo.name }}</span>
@@ -75,26 +70,25 @@
                     {% endif %}
                 </dl>
                 {% if attempt.pseudo %}
-                {# Taxminiy guruh: yuz va tana xususiyatlari bo'yicha bir odamga
-                   biriktirilgan o'tishlar. O'lchangan qaytarish ~30 % - ya'ni
-                   guruh ko'rsatilmagani "birinchi marta ko'rildi" degani EMAS,
-                   va guruh davomatga hech narsa yozmaydi. #}
+                {# Estimated group: passes associated with a single person by face and body features.
+                   Measured recall ~30% - meaning a card with no group is NOT evidence of a first visit,
+                   and groups do not write anything to attendance. #}
                 <p class="text-muted small mb-0">
-                  Yuz/tana bo'yicha taxminiy guruh
-                  ({{ 'yuz' if attempt.pseudo.by == 'face' else ('tana' if attempt.pseudo.by == 'body' else 'yangi') }}).
-                  Davomatga yozilmaydi.
+                  Estimated group by face/body
+                  ({{ 'face' if attempt.pseudo.by == 'face' else ('body' if attempt.pseudo.by == 'body' else 'new') }}).
+                  Not written to attendance.
                 </p>
                 {% endif %}
                 <button class="btn btn-outline-primary btn-sm" type="button" data-airi-evidence
-                    data-evidence-src="{{ snapshot or '' }}" data-evidence-title="Noma'lum #{{ attempt.id }}"
-                    data-evidence-subtitle="Umumiy dalil ko'rinishi">Dalilni ko'rish</button>
+                    data-evidence-src="{{ snapshot or '' }}" data-evidence-title="Unknown #{{ attempt.id }}"
+                    data-evidence-subtitle="General evidence view">View Evidence</button>
 
                 {% if attempt.resolved_kind %}
                 <div class="mt-2 small">
                     <span class="status-chip {{ 'status-chip--success' if attempt.resolved_kind == 'employee' else 'status-chip--warning' }}">
                         {% if attempt.resolved_kind == 'employee' %}{{ attempt.resolved_name }}
-                        {%- elif attempt.resolved_kind == 'visitor' %}Xodim emas
-                        {%- else %}Aniq emas{% endif %}
+                        {%- elif attempt.resolved_kind == 'visitor' %}Not Employee
+                        {%- else %}Unsure{% endif %}
                     </span>
                     {% if attempt.resolved_by %}<span class="text-muted">· {{ attempt.resolved_by }}</span>{% endif %}
                 </div>
@@ -106,17 +100,17 @@
                     <input type="hidden" name="next" value="{{ PREFIX }}/attendance/unknown?show={{ show }}">
                     <div class="d-flex gap-1">
                         <select class="form-select form-select-sm js-employee-picker"
-                                name="employee_id" aria-label="Xodimni tanlang"
+                                name="employee_id" aria-label="Select Employee"
                                 data-selected="{{ attempt.resolved_employee_id or '' }}">
-                            <option value="">Kim bu?</option>
+                            <option value="">Who is this?</option>
                         </select>
-                        <button class="btn btn-primary btn-sm" type="submit" name="kind" value="employee">Saqlash</button>
+                        <button class="btn btn-primary btn-sm" type="submit" name="kind" value="employee">Save</button>
                     </div>
                     <div class="d-flex gap-1">
                         <button class="btn btn-outline-danger btn-sm flex-grow-1" type="submit"
-                                name="kind" value="visitor">Xodim emas</button>
+                                name="kind" value="visitor">Not Employee</button>
                         <button class="btn btn-outline-secondary btn-sm" type="submit"
-                                name="kind" value="unsure">Aniq emas</button>
+                                name="kind" value="unsure">Unsure</button>
                     </div>
                     {% if can_admin %}
                     {# Naming the face records a miss; it does not give the person
@@ -124,22 +118,21 @@
                        thing the sighting cannot supply, which way they walked. #}
                     <div class="border-top pt-1 mt-1">
                         <span class="d-block text-muted mb-1" style="font-size:11px">
-                            Davomatga yozish &mdash; yo'nalishni tanlang:
+                            Write to attendance &mdash; choose direction:
                         </span>
                         <div class="d-flex gap-1">
                             <button class="btn btn-success btn-sm flex-grow-1" type="submit"
                                     name="direction" value="ENTER"
-                                    onclick="return confirm('Tanlangan xodim KIRDI deb davomatga yozilsinmi? Kun qaytadan hisoblanadi.')">Kirdi (IN)</button>
+                                    onclick="return confirm('Record selected employee as ENTERED? The day will be recalculated.')">Enter (IN)</button>
                             <button class="btn btn-warning btn-sm flex-grow-1" type="submit"
                                     name="direction" value="EXIT"
-                                    onclick="return confirm('Tanlangan xodim CHIQDI deb davomatga yozilsinmi? Kun qaytadan hisoblanadi.')">Chiqdi (OUT)</button>
+                                    onclick="return confirm('Record selected employee as EXITED? The day will be recalculated.')">Exit (OUT)</button>
                         </div>
                     </div>
                     {% endif %}
                     {% if not attempt.has_vector %}
                     <span class="text-muted" style="font-size:11px">
-                        Bu kuzatuvda yuz vektori saqlanmagan &mdash; belgilash mumkin,
-                        lekin chegarani o'lchashda ishlatilmaydi.
+                        Face vector not saved for this sighting &mdash; can be labeled, but won't be used in threshold measurement.
                     </span>
                     {% endif %}
                 </form>
@@ -151,8 +144,8 @@
     {% else %}
     <div class="unknown-review__empty">
         <i class="bi bi-shield-check" aria-hidden="true"></i>
-        <h2 class="h5">Hozircha noma'lum kuzatuvlar yo'q</h2>
-        <p class="text-muted mb-0">Yangi noma'lum trek paydo bo'lsa, uning eng yaxshi kadri shu yerda ko'rinadi.</p>
+        <h2 class="h5">No unknown sightings yet</h2>
+        <p class="text-muted mb-0">When a new unknown track appears, its best frame will be shown here.</p>
     </div>
     {% endif %}
 </section>

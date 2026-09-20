@@ -183,3 +183,5 @@ license*.key
 # host reports the OSNet model in /api/health.
 !models/reid_osnet_x0_75_256x128_e512_fp16.onnx
 !models/reid_resnet101_ibn_256x128_e2048_fp16.onnx
+scripts/vendor_downloads/
+

@@ -1,30 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Xodimlar ro'yxati{% endblock %}
+{% block title %}Employee List{% endblock %}
 {% block content %}
 <div class="card card-shadow airi-card">
     <div class="card-header bg-transparent border-0 d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
         <div>
-            <p class="eyebrow mb-1">AIRI / Xodimlar</p>
-            <h1 class="h4 mb-0 fw-bold">Xodimlar ro'yxati</h1>
-            <small class="text-muted">Profil, bo'lim va ro'yxatdan o'tish holatini boshqaring.</small>
+            <p class="eyebrow mb-1">AIRI / Employees</p>
+            <h1 class="h4 mb-0 fw-bold">Employee List</h1>
+            <small class="text-muted">Manage profiles, departments, and enrollment status.</small>
         </div>
         {% if current_user and current_user.r == 'admin' %}
         <a href="{{ url('employees:register') }}" class="btn btn-navbar-gradient">
-            <i class="bi bi-person-plus me-2" aria-hidden="true"></i>Ro'yxatdan o'tkazish
+            <i class="bi bi-person-plus me-2" aria-hidden="true"></i>Register
         </a>
         {% endif %}
     </div>
     <div class="card-body">
-        <form method="get" class="row g-3 mb-4 search-form-compact" aria-label="Xodimlarni filtrlash">
+        <form method="get" class="row g-3 mb-4 search-form-compact" aria-label="Filter employees">
             <div class="col-12 col-md-5">
-                <label class="form-label fw-semibold small" for="employee-query">Qidirish</label>
+                <label class="form-label fw-semibold small" for="employee-query">Search</label>
                 <input type="text" name="query" value="{{ query|default("") }}" class="form-control form-control-sm"
-                    id="employee-query" placeholder="F.I.Sh. yoki tashqi ID bo'yicha">
+                    id="employee-query" placeholder="By Name or External ID">
             </div>
             <div class="col-12 col-md-4">
-                <label class="form-label fw-semibold small" for="employee-department">Bo'lim</label>
+                <label class="form-label fw-semibold small" for="employee-department">Department</label>
                 <select name="department" id="employee-department" class="form-select form-select-sm">
-                    <option value="">Barcha bo'limlar</option>
+                    <option value="">All Departments</option>
                     {% for item in departments %}
                     <option value="{{ item }}" {% if department == item %}selected{% endif %}>{{ item }}</option>
                     {% endfor %}
@@ -32,21 +32,21 @@
             </div>
             <div class="col-12 col-md-3 d-flex align-items-end gap-2">
                 <button class="btn btn-navbar-gradient btn-sm flex-grow-1" type="submit">
-                    <i class="bi bi-search me-1" aria-hidden="true"></i>Qidirish
+                    <i class="bi bi-search me-1" aria-hidden="true"></i>Search
                 </button>
-                <a class="btn btn-outline-secondary btn-sm" href="{{ url('employees:list') }}">Tozalash</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url('employees:list') }}">Clear</a>
             </div>
         </form>
-        <div class="data-table" tabindex="0" aria-label="Xodimlar jadvali">
+        <div class="data-table" tabindex="0" aria-label="Employee Table">
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th>Shaxs</th>
-                        <th>Bo'lim</th>
-                        <th>Lavozim</th>
-                        <th>Telefon</th>
-                        <th>Ro'yxatdan o'tish</th>
-                        <th><span class="visually-hidden">Amal</span></th>
+                        <th>Person</th>
+                        <th>Department</th>
+                        <th>Position</th>
+                        <th>Phone</th>
+                        <th>Enrollment</th>
+                        <th><span class="visually-hidden">Action</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,30 +60,35 @@
                             <span class="employee-roster__avatar employee-roster__avatar--empty" aria-hidden="true"><i class="bi bi-person"></i></span>
                             {% endif %}
                             <strong class="ms-2">{{ employee.full_name }}</strong>
-                            <small class="d-block text-muted ms-2">{{ employee.employee_id|default("ID berilmagan") }}</small>
+                            <small class="d-block text-muted ms-2">{{ employee.employee_id|default("No ID assigned") }}</small>
                         </td>
                         <td>{{ employee.department }}</td>
                         <td>{{ employee.position|default("—") }}</td>
                         <td>{{ employee.phone_number|clean_phone }}</td>
                         <td>
                             {% if employee.enrollment_state == "enrolled" %}
-                            <span class="status-chip status-chip--success">Ro'yxatdan o'tgan</span>
+                            <span class="status-chip status-chip--success">Enrolled</span>
                             {% else %}
-                            <span class="status-chip status-chip--warning">Ro'yxatdan o'tmagan</span>
+                            <span class="status-chip status-chip--warning">Not Enrolled</span>
                             {% endif %}
-                            <small class="d-block text-muted mt-1">{{ employee.enrollment_count }} ta namuna</small>
+                            <small class="d-block text-muted mt-1">{{ employee.enrollment_count }} samples</small>
                         </td>
                         <td class="text-end">
                             <a class="btn btn-sm btn-outline-primary" href="{{ url('employees:detail', employee.id) }}">
-                                <i class="bi bi-eye me-1" aria-hidden="true"></i>Ko'rish
+                                <i class="bi bi-eye me-1" aria-hidden="true"></i>View
+                            </a>
+                            <a class="btn btn-sm btn-outline-danger ms-1" href="{{ url('employees:delete', employee.id) }}" title="Delete Employee">
+                                <i class="bi bi-trash me-1" aria-hidden="true"></i>Delete
                             </a>
                         </td>
+
                     </tr>
                     {% else %}
                     <tr>
                         <td colspan="6" class="text-center text-muted py-5">
                             <i class="bi bi-people d-block fs-3 mb-2" aria-hidden="true"></i>
-                            Xodimlar topilmadi.
+                            <i class="bi bi-people d-block fs-3 mb-2" aria-hidden="true"></i>
+                            No employees found.
                         </td>
                     </tr>
                     {% endfor %}

@@ -39,6 +39,22 @@ OUT = settings.data_dir / "direction"
 
 
 def grab(url: str, name: str):
+    if settings.replay_dir:
+        from app.core.stream import ReplaySource
+        r = ReplaySource(Path(settings.replay_dir) / name, name=name)
+        clips = r.clips()
+        if clips:
+            cap = cv2.VideoCapture(str(clips[0]))
+            # Grab a frame ~1 second in so it's not a black initial frame
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 25)
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                ret, frame = cap.read()
+            cap.release()
+            if ret and frame is not None:
+                return frame
+
     src = RtspSource(url, name=name, transport="tcp", queue_size=2).start()
     import time
     t0 = time.time()
@@ -49,6 +65,7 @@ def grab(url: str, name: str):
             return f.image
     src.stop()
     return None
+
 
 
 def draw(img, cfg: DirectionConfig, label: str):

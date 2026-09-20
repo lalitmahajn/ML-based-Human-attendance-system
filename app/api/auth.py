@@ -472,8 +472,8 @@ def users_role(request: Request, username: str = Form(""), role: str = Form(""))
     except auth_svc.AuthError as e:
         return RedirectResponse(_p(f"/users?error={_quote(str(e))}"), status_code=303)
     label = auth_svc.ROLE_LABELS[applied]
-    note = (f"{auth_svc.normalize_username(username)} endi {label}. "
-            f"O'zgarish ular qayta kirganda kuchga kiradi.")
+    note = (f"{auth_svc.normalize_username(username)} is now {label}. "
+            f"The change will take effect upon their next login.")
     return RedirectResponse(_p(f"/users?created={_quote(note)}"), status_code=303)
 
 

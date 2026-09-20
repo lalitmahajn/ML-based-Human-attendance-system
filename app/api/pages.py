@@ -16,7 +16,7 @@ from urllib.parse import quote as _quote, urlsplit, urlunsplit
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
                                RedirectResponse)
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import FormData, UploadFile
 from starlette.formparsers import FormParser, MultiPartException, MultiPartParser
@@ -214,7 +214,7 @@ def _camera_health(cameras: list[Camera]) -> list[dict]:
             health.append({
                 "id": camera.id, "name": camera.name, "role": camera.role.value,
                 "state": "offline", "state_label": "Offline", "available": False,
-                "detail": "Ishchi mavjud emas", "fps": None, "pipeline_errors": None,
+                "detail": "Worker not available", "fps": None, "pipeline_errors": None,
             })
             continue
 
@@ -223,9 +223,9 @@ def _camera_health(cameras: list[Camera]) -> list[dict]:
         health.append({
             "id": camera.id, "name": camera.name, "role": camera.role.value,
             "state": "online" if connected else "unavailable",
-            "state_label": "Onlayn" if connected else "Mavjud emas",
+            "state_label": "Online" if connected else "Unavailable",
             "available": connected,
-            "detail": "Oqim faol" if connected else "Oqim ulanmagan yoki eskirgan",
+            "detail": "Stream active" if connected else "Stream not connected or stale",
             "fps": stream.get("fps") if connected else None,
             "pipeline_errors": stats.get("pipeline_errors", 0),
         })
@@ -352,12 +352,12 @@ def _enrollment_wants_json(request: Request) -> bool:
 
 
 ENROLLMENT_LIMIT_MESSAGE = (
-    "So'rov limiti oshib ketdi. Jami ko'pi bilan 32 ta rasm, har bir fayl "
-    "4 MB va barcha yuboriladigan ma'lumot 10 MB dan oshmasligi kerak."
+    "Request limit exceeded. At most 32 images total, max 4 MB each, "
+    "and total payload size must not exceed 10 MB."
 )
 ENROLLMENT_PERSISTENCE_MESSAGE = (
-    "Xodimni saqlab bo'lmadi. Qayta urinib ko'ring; muammo takrorlansa "
-    "administratorga murojaat qiling."
+    "Could not save employee. Please try again; if problem persists "
+    "contact administrator."
 )
 
 
@@ -418,9 +418,9 @@ async def _parse_enrollment_form(request: Request) -> FormData:
         try:
             content_length = int(raw_length)
         except ValueError as exc:
-            raise EnrollmentRequestMalformed("Content-Length noto'g'ri.") from exc
+            raise EnrollmentRequestMalformed("Invalid Content-Length.") from exc
         if content_length < 0:
-            raise EnrollmentRequestMalformed("Content-Length noto'g'ri.")
+            raise EnrollmentRequestMalformed("Invalid Content-Length.")
         if content_length > MAX_ENROLLMENT_BODY_BYTES:
             raise EnrollmentRequestTooLarge(ENROLLMENT_LIMIT_MESSAGE)
 
@@ -442,7 +442,7 @@ async def _parse_enrollment_form(request: Request) -> FormData:
             raise EnrollmentRequestTooLarge(ENROLLMENT_LIMIT_MESSAGE)
         return form
     raise EnrollmentRequestMalformed(
-        "Forma turi noto'g'ri. Sahifani yangilab, rasmlarni qayta yuboring."
+        "Invalid form format. Refresh the page and try submitting images again."
     )
 
 
@@ -521,14 +521,14 @@ async def employee_enroll(request: Request):
         log.warning("invalid enrollment request: %s", exc)
         return _enrollment_error_response(
             request,
-            "Forma ma'lumotlarini o'qib bo'lmadi. Sahifani yangilab, qayta yuboring.",
+            "Could not read form data. Refresh the page and try again.",
             status_code=400,
         )
     except Exception:
         log.exception("unexpected enrollment multipart parsing failure")
         return _enrollment_error_response(
             request,
-            "Forma ma'lumotlarini o'qib bo'lmadi. Sahifani yangilab, qayta yuboring.",
+            "Could not read form data. Refresh the page and try again.",
             status_code=400,
         )
 
@@ -578,8 +578,8 @@ async def employee_enroll(request: Request):
         log.exception("employee %s saved but runtime gallery reload failed", result.employee_id)
         gallery_summary = None
         warning = (
-            "Xodim saqlandi, ammo ishchi gallery yangilanmadi. "
-            "Tanib olish xizmatini qayta ishga tushiring."
+            "Employee saved, but runtime gallery was not reloaded. "
+            "Please restart the recognition service."
         )
 
     redirect_url = _p(f"/employees/{result.employee_id}")
@@ -609,14 +609,14 @@ async def employee_enroll(request: Request):
                 for item in result.rejected
             ],
             enrollment_success=(
-                f"Xodim saqlandi va {result.embeddings} ta embedding galleryga qo'shildi."
+                f"Employee saved and {result.embeddings} embeddings added to gallery."
             ),
             enrollment_warning=warning,
             enrollment_redirect_url=redirect_url,
             status_code=201,
         )
     return HTMLResponse(
-        f'<!doctype html><title>Xodim saqlandi</title><a href="{redirect_url}">Xodim sahifasi</a>',
+        f'<!doctype html><title>Employee Saved</title><a href="{redirect_url}">Employee Page</a>',
         status_code=303,
         headers={"Location": redirect_url},
     )
@@ -642,6 +642,35 @@ def employee_detail(request: Request, employee_id: int):
             image=_p(f"/employees/{employee_id}/photo") if has_photo else None)
     return render("employees/detail.html", request=request, current_view="employees:list", employee=vm,
                   attendance_history=hist, records=hist, embedding_count=n_emb)
+
+
+@router.get("/employees/{employee_id}/delete", response_class=HTMLResponse)
+def employee_delete_confirm(request: Request, employee_id: int):
+    with session_scope() as s:
+        emp = s.get(Employee, employee_id)
+        if not emp:
+            raise HTTPException(404, "Employee not found")
+        return render("employees/delete.html", request=request, current_view="employees:list", object=emp)
+
+
+@router.post("/employees/{employee_id}/delete")
+async def employee_delete(request: Request, employee_id: int):
+    with session_scope() as s:
+        emp = s.get(Employee, employee_id)
+        if not emp:
+            raise HTTPException(404, "Employee not found")
+        name = emp.full_name
+        s.execute(delete(FaceEmbedding).where(FaceEmbedding.employee_id == employee_id))
+        s.execute(delete(DailyAttendance).where(DailyAttendance.employee_id == employee_id))
+        s.execute(delete(Employee).where(Employee.id == employee_id))
+
+    try:
+        await run_in_threadpool(runtime.reload_gallery)
+    except Exception:
+        log.exception("gallery reload after employee deletion failed")
+
+    return RedirectResponse(_p(f"/employees?msg=" + _quote(f"Employee '{name}' deleted successfully.")), status_code=303)
+
 
 
 @router.get("/employees/{employee_id}/photo")
@@ -681,7 +710,7 @@ def _parse_attendance_date(value: str | None, field: str) -> date | None:
     try:
         return date.fromisoformat(value)
     except (TypeError, ValueError) as exc:
-        raise HTTPException(422, f"{field} ISO sana bo'lishi kerak") from exc
+        raise HTTPException(422, f"{field} must be an ISO date") from exc
 
 
 def _attendance_date_range(target_date: str | None, start_date: str | None,
@@ -700,9 +729,9 @@ def _attendance_date_range(target_date: str | None, start_date: str | None,
     notice = None
     if start > end:
         start, end = end, start
-        notice = "Sana oralig'i tartibga keltirildi."
+        notice = "Date range was reordered."
     if (end - start).days >= MAX_ATTENDANCE_RANGE_DAYS:
-        raise HTTPException(422, "Sana oralig'i 366 kundan oshmasligi kerak")
+        raise HTTPException(422, "Date range cannot exceed 366 days")
     return selected_day, start, end, notice
 
 
@@ -751,9 +780,9 @@ def attendance_list(request: Request, target_date: str | None = None,
     cap_notice = ""
     if (end - start).days > MAX_ATTENDANCE_HTML_DAYS:
         start = end - timedelta(days=MAX_ATTENDANCE_HTML_DAYS)
-        cap_notice = (f"Jadvalda ko'pi bilan {MAX_ATTENDANCE_HTML_DAYS} kun ko'rsatiladi: "
-                      f"{start.isoformat()} — {end.isoformat()}. To'liq oraliq uchun "
-                      f"CSV eksportdan foydalaning.")
+        cap_notice = (f"The table displays at most {MAX_ATTENDANCE_HTML_DAYS} days: "
+                      f"{start.isoformat()} — {end.isoformat()}. For the full range, "
+                      f"use CSV export.")
     with session_scope() as s:
         records = [DailyVM.of(record, employee) for record, employee in s.execute(
             attendance_newest_first(attendance_records_query(
@@ -1027,10 +1056,10 @@ async def event_void(request: Request, event_id: int):
         corrections.void_event, event_id, by=str(me.get("u") or ""),
         reason=str(form.get("reason") or ""))
     if out.get("ok"):
-        extra = (f" {out['gallery_rows_removed']} galereya kadri o'chirildi."
+        extra = (f" {out['gallery_rows_removed']} gallery frame(s) removed."
                  if out.get("gallery_rows_removed") else "")
-        note = (f"{out['name']} uchun {out['business_date']} kuni qayta "
-                f"hisoblandi ({out['replayed']} hodisa).{extra}")
+        note = (f"Recalculated {out['business_date']} for {out['name']} "
+                f"({out['replayed']} events).{extra}")
         target = f"{_back(request, form, '/')}?msg={_quote(note)}"
     else:
         target = f"{_back(request, form, '/')}?error={_quote(out.get('error', ''))}"
@@ -1047,7 +1076,7 @@ async def event_unvoid(request: Request, event_id: int):
     out = await run_in_threadpool(corrections.unvoid_event, event_id,
                                   by=str(me.get("u") or ""))
     key = "msg" if out.get("ok") else "error"
-    val = "Qaytarildi." if out.get("ok") else out.get("error", "")
+    val = "Restored." if out.get("ok") else out.get("error", "")
     return RedirectResponse(f"{_back(request, form, '/')}?{key}={_quote(val)}",
                             status_code=303)
 
@@ -1070,7 +1099,7 @@ async def unknown_resolve(request: Request, sighting_id: int):
         from app.services import auth as auth_svc
         if not auth_svc.can_admin(me):
             return RedirectResponse(
-                f"{back}?error={_quote('Davomatga yozish uchun administrator huquqi kerak')}",
+                f"{back}?error={_quote('Administrator permissions required to record attendance')}",
                 status_code=303)
         out = await run_in_threadpool(
             corrections.promote_sighting, sighting_id,
@@ -1079,11 +1108,10 @@ async def unknown_resolve(request: Request, sighting_id: int):
         if not out.get("ok"):
             return RedirectResponse(f"{back}?error={_quote(out.get('error', ''))}",
                                     status_code=303)
-        moved = {"CHECK_IN": "kelish", "CHECK_OUT": "ketish"}.get(
-            out["transition"], out["transition"] or "qayd")
-        note = (f"{out['name']} - {out['direction']} sifatida davomatga "
-                f"yozildi ({moved}). Qo'lda kiritilgan deb belgilangan; "
-                f"xato bo'lsa, kun sahifasidan bekor qiling.")
+        moved = {"CHECK_IN": "IN", "CHECK_OUT": "OUT"}.get(
+            out["transition"], out["transition"] or "record")
+        note = (f"{out['name']} recorded to attendance as {out['direction']} ({moved}). "
+                f"Marked as manually entered; if incorrect, void it from the day view.")
         return RedirectResponse(f"{back}?msg={_quote(note)}", status_code=303)
 
     out = await run_in_threadpool(
@@ -1098,17 +1126,14 @@ async def unknown_resolve(request: Request, sighting_id: int):
         # Say the part the operator cannot see. Naming the face looks like it
         # finished the job - the row turns green with the person's name on it -
         # and the one thing it does NOT do is the thing they came here for.
-        note = (f"{out['name']} deb belgilandi. Diqqat: davomat o'zgarmadi - "
-                f"belgilash kelish-ketish yozuvini yaratmaydi.")
+        note = (f"Labeled as {out['name']}. Note: attendance was not modified &mdash; "
+                f"labeling does not create an IN/OUT record.")
         if out.get("offerable"):
-            note += (" Yuzni galereyaga qo'shish uchun Galereya sahifasiga "
-                     "o'ting - u yerda bir xil chegara va bir xil tekshiruvdan "
-                     "o'tadi.")
+            note += (" To add this face to the gallery, visit the Gallery page.")
     elif out["kind"] == "visitor":
-        note = ("Xodim emas deb belgilandi. Bu chegaralarni to'g'ri sozlash "
-                "uchun eng qimmatli ma'lumot.")
+        note = ("Labeled as Not Employee. This is valuable data for threshold calibration.")
     else:
-        note = "Belgilandi."
+        note = "Labeled."
     return RedirectResponse(f"{back}?msg={_quote(note)}", status_code=303)
 
 
@@ -1136,7 +1161,7 @@ def _camera_diagnostics_context(cameras: list[Camera]) -> list[dict]:
             worker_stats[camera_id] = worker.stats()
         except Exception as exc:  # Diagnostics must not make camera failures fatal to the page.
             log.warning("camera %s stats unavailable: %s", camera_id, exc)
-            worker_failures[camera_id] = "Ishchi statistikasi olinmadi"
+            worker_failures[camera_id] = "Worker statistics unavailable"
     diagnostics = []
     for camera in cameras:
         stats = worker_stats.get(camera.id)
@@ -1158,12 +1183,12 @@ def _camera_diagnostics_context(cameras: list[Camera]) -> list[dict]:
             },
             "observed": {
                 "state": "online" if online else "offline",
-                "state_label": "Onlayn" if online else "Mavjud emas",
+                "state_label": "Online" if online else "Unavailable",
                 "resolution": resolution,
                 "fps": observed_fps,
                 "detail": (
-                    "RTSP oqimi faol" if online
-                    else worker_failures.get(camera.id, "Ishchi yoki yangilangan RTSP oqimi mavjud emas")
+                    "RTSP stream active" if online
+                    else worker_failures.get(camera.id, "Worker or updated RTSP stream not available")
                 ),
             },
             "pipeline": {
@@ -1174,8 +1199,8 @@ def _camera_diagnostics_context(cameras: list[Camera]) -> list[dict]:
             },
             "drift": {
                 "state": "nvr-owned", "comparison": "unavailable",
-                "label": "Ma'lumotlarni solishtirib bo'lmaydi",
-                "detail": "Encoder qiymatlari NVR tomonidan boshqariladi",
+                "label": "Data comparison not available",
+                "detail": "Encoder settings managed by NVR",
             },
         })
     return diagnostics
@@ -1251,7 +1276,7 @@ def _live_camera_context(cameras: list[Camera]) -> list[dict]:
     """Map configured cameras and existing worker stats into presentation-only health data."""
     role_order = {"IN": 0, "OUT": 1, "BOTH": 2}
     role_labels = {
-        "IN": "Kirish kamerasi", "OUT": "Chiqish kamerasi", "BOTH": "Umumiy kamera",
+        "IN": "Entrance Camera", "OUT": "Exit Camera", "BOTH": "General Camera",
     }
     contexts = []
     for camera in sorted(cameras, key=lambda item: (role_order.get(item.role.value, 3), item.name)):
@@ -1267,13 +1292,13 @@ def _live_camera_context(cameras: list[Camera]) -> list[dict]:
         if stats is None:
             contexts.append({
                 "id": camera.id, "name": camera.name, "role": role,
-                "role_label": role_labels.get(role, "Kamera"),
+                "role_label": role_labels.get(role, "Camera"),
                 "state": "offline", "state_label": "Offline",
-                "state_detail": "Ishchi mavjud emas",
+                "state_detail": "Worker not available",
                 "resolution": None, "camera_fps": None, "algorithm_fps": None,
                 "latency_ms": None, "last_frame": None,
                 "pipeline_errors": None, "pipeline_status": "unavailable",
-                "pipeline_status_label": "Pipeline ma'lumoti mavjud emas",
+                "pipeline_status_label": "Pipeline status unavailable",
                 "last_error": None,
             })
             continue
@@ -1282,29 +1307,29 @@ def _live_camera_context(cameras: list[Camera]) -> list[dict]:
         timings = stats.get("timings") or {}
         connected = bool(stream.get("connected")) and not bool(stream.get("stale"))
         state = "online" if connected else "unavailable"
-        state_label = "Onlayn" if connected else "Mavjud emas"
-        state_detail = "Oqim faol" if connected else "Oqim ulanmagan yoki eskirgan"
+        state_label = "Online" if connected else "Unavailable"
+        state_detail = "Stream active" if connected else "Stream not connected or stale"
 
         # Every figure here comes from what CameraWorker.stats() and the source
         # really carry: stream fps, the last frame's pipeline timings, and the
         # source's own last-frame clock. The keys this used to read
         # (processed_fps, latency_ms, dropped_frames, last_frame_time) did not
-        # exist, so the live page showed "Mavjud emas" for all of them.
+        # exist, so the live page showed "Unavailable" for all of them.
         last_frame_ts = _positive_number(
             getattr(getattr(worker, "source", None), "last_frame_ts", None))
 
         pipeline_errors = stats.get("pipeline_errors") if "pipeline_errors" in stats else None
         last_error = stats.get("last_error") or None
         if last_error or (isinstance(pipeline_errors, (int, float)) and pipeline_errors > 0):
-            pipeline_status, pipeline_status_label = "error", "Pipeline xatosi"
+            pipeline_status, pipeline_status_label = "error", "Pipeline Error"
         elif pipeline_errors == 0 and connected:
-            pipeline_status, pipeline_status_label = "healthy", "Pipeline sog'lom"
+            pipeline_status, pipeline_status_label = "healthy", "Pipeline Healthy"
         else:
-            pipeline_status, pipeline_status_label = "unavailable", "Pipeline ma'lumoti mavjud emas"
+            pipeline_status, pipeline_status_label = "unavailable", "Pipeline status unavailable"
 
         contexts.append({
             "id": camera.id, "name": camera.name, "role": role,
-            "role_label": role_labels.get(role, "Kamera"),
+            "role_label": role_labels.get(role, "Camera"),
             "state": state, "state_label": state_label, "state_detail": state_detail,
             "resolution": _available_resolution(stream.get("resolution")),
             "camera_fps": _positive_number(stream.get("fps")),
@@ -1338,7 +1363,7 @@ def _unknown_activity(s, day: date, limit: int = 30) -> list[dict]:
     ).all()
     return [{
         "id": sighting.id, "camera_id": sighting.camera_id,
-        "camera": camera_name or (f"Kamera #{sighting.camera_id}" if sighting.camera_id else "—"),
+        "camera": camera_name or (f"Camera #{sighting.camera_id}" if sighting.camera_id else "—"),
         "attempt_count": sighting.frames or 0,
         "first_seen": sighting.first_seen.astimezone(settings.tz).isoformat(),
         "last_seen": sighting.last_seen.astimezone(settings.tz).isoformat(),
@@ -1474,13 +1499,13 @@ async def gallery_enrolment_remove(request: Request):
         log.exception("gallery reload after enrolment removal failed")
     parts = []
     if out["removed"]:
-        parts.append(f"{out['removed']} ta ro'yxat surati galereyadan o'chirildi. "
-                     f"Fayl diskda qoladi - scripts/enroll.py qayta ishga "
-                     f"tushirilsa, qaytadan qo'shiladi.")
+        parts.append(f"{out['removed']} enrolled photo(s) removed from gallery. "
+                     f"The file remains on disk and will be re-added if "
+                     f"scripts/enroll.py is run again.")
     parts += out["refused"]
     key = "msg" if out["removed"] else "error"
     return RedirectResponse(
-        _p(f"/gallery/review?{key}=" + _quote(" ".join(parts) or "Hech narsa tanlanmadi")),
+        _p(f"/gallery/review?{key}=" + _quote(" ".join(parts) or "Nothing selected")),
         status_code=303)
 
 
@@ -1561,7 +1586,7 @@ def recognition_live(request: Request):
 
     checked_out = sum(1 for r in records if r.check_out_time)
     checked_in = sum(1 for r in records if r.check_in_time)
-    summary = f"Bugun {total} xodimdan {len(records)} nafari qayd etildi"
+    summary = f"Today {len(records)} of {total} employees were recorded"
     return render(
         "recognition/live.html", request=request, current_view="recognition:live",
         cameras=camera_rows,
@@ -1617,7 +1642,7 @@ def recognition_logs():
         "stats": {"recognized_today": len(records), "total_employees": total,
                   "checked_in_today": checked_in, "checked_out_today": checked_out,
                   "unknown_attempts": n_unknown,
-                  "summary": f"Bugun {total} xodimdan {len(records)} nafari qayd etildi"},
+                  "summary": f"Today {len(records)} of {total} employees were recorded"},
     }
 
 

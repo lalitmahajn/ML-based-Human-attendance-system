@@ -5,7 +5,15 @@
 The runtime needs **no PyTorch for inference** — the aligner and recognizer are
 ONNX. PyTorch is present only because YOLOv8n-face runs through Ultralytics.
 
+> [!IMPORTANT]
+> **Active Production Setup**: See [AGENTS.md](file:///c:/Users/lalit/Downloads/Project/attendance/AGENTS.md) for the authoritative active configuration.
+> - **OS / Hardware**: Windows 11, **NVIDIA GeForce RTX 5050 (8GB VRAM, sm_120 Blackwell)**, CUDA 13.3/13.4.
+> - **Python**: 3.11 (`venv\Scripts\python.exe`).
+> - **Active Models**: `yolov8n-face.pt`, `dfa_mobilenet_aligner.onnx` (GPU CUDA), `adaface_ir50_base.onnx` (GPU CUDA).
+> - The notes below refer to the original developer's historical Linux/RTX 3070 benchmarking environment and are retained for reference.
+
 ```
+(Historical reference only - see AGENTS.md for active configuration)
 Python 3.10.16      conda env "yolo"
 onnxruntime-gpu     1.23.2   → TensorRT, CUDA, CPU providers
 CUDA 12.4 / cuDNN 9 supplied by torch's bundled nvidia-* wheels

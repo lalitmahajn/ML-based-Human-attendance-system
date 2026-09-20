@@ -1,74 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Boshqaruv | AIRI{% endblock %}
+{% block title %}Dashboard | AIRI{% endblock %}
 
 {% block content %}
 <section class="airi-card dashboard-welcome p-4 mb-4" aria-labelledby="dashboardWelcome">
     <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
         <div>
-            <p class="text-muted text-uppercase small fw-semibold mb-1">AIRI operatsion markazi</p>
-            <h1 class="h3 mb-1" id="dashboardWelcome">Xush kelibsiz</h1>
-            <p class="mb-0 text-muted">{{ today|date("d.m.Y") }} · Bugungi davomat holati</p>
+            <p class="text-muted text-uppercase small fw-semibold mb-1">AIRI Operations Center</p>
+            <h1 class="h3 mb-1" id="dashboardWelcome">Welcome</h1>
+            <p class="mb-0 text-muted">{{ today|date("d.m.Y") }} · Today's attendance status</p>
         </div>
         <div class="text-md-end">
-            <strong class="d-block fs-4">{{ total_employees }} xodim</strong>
-            <span class="text-muted">Davomat: {{ present_today }}/{{ total_employees }} ({{ present_ratio }}%)</span>
+            <strong class="d-block fs-4">{{ total_employees }} employees</strong>
+            <span class="text-muted">Attendance: {{ present_today }}/{{ total_employees }} ({{ present_ratio }}%)</span>
         </div>
     </div>
 </section>
 
 <section class="mb-4" aria-labelledby="dailyAttendanceHeading">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h4 mb-0" id="dailyAttendanceHeading">Kunlik davomat</h2>
-        <a class="btn btn-sm btn-outline-primary" href="{{ url('attendance:list') }}">Batafsil</a>
+        <h2 class="h4 mb-0" id="dailyAttendanceHeading">Daily Attendance</h2>
+        <a class="btn btn-sm btn-outline-primary" href="{{ url('attendance:list') }}">Details</a>
     </div>
     <div class="row g-3">
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Kelganlar</span><div class="dashboard-metric__value mt-2">{{ present_today }}</div><span class="status-chip status-chip--success mt-3">Bugun qayd etildi</span></article></div>
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Vaqtida kelgan</span><div class="dashboard-metric__value mt-2">{{ on_time_today }}</div><span class="status-chip status-chip--success mt-3">09:00 gacha</span></article></div>
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Kechikkanlar</span><div class="dashboard-metric__value mt-2">{{ late_arrivals }}</div><span class="status-chip status-chip--warning mt-3">09:00 dan keyin</span></article></div>
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Kelmaganlar</span><div class="dashboard-metric__value mt-2">{{ absent_today }}</div><span class="status-chip status-chip--danger mt-3">Faol ro'yxat</span></article></div>
+        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Present</span><div class="dashboard-metric__value mt-2">{{ present_today }}</div><span class="status-chip status-chip--success mt-3">Recorded today</span></article></div>
+        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">On Time</span><div class="dashboard-metric__value mt-2">{{ on_time_today }}</div><span class="status-chip status-chip--success mt-3">Before 09:00</span></article></div>
+        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Late</span><div class="dashboard-metric__value mt-2">{{ late_arrivals }}</div><span class="status-chip status-chip--warning mt-3">After 09:00</span></article></div>
+        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Absent</span><div class="dashboard-metric__value mt-2">{{ absent_today }}</div><span class="status-chip status-chip--danger mt-3">Active list</span></article></div>
     </div>
 </section>
 
 <section class="mb-4" aria-labelledby="quickActionsHeading">
-    <h2 class="h4 mb-3" id="quickActionsHeading">Tezkor amallar</h2>
+    <h2 class="h4 mb-3" id="quickActionsHeading">Quick Actions</h2>
     <div class="row g-3">
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:list') }}"><i class="bi bi-calendar2-check fs-4" aria-hidden="true"></i><strong>Davomat</strong><span class="text-muted small">Bugungi qaydlar</span></a></div>
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('employees:list') }}"><i class="bi bi-people fs-4" aria-hidden="true"></i><strong>Xodimlar</strong><span class="text-muted small">Faol ro'yxat</span></a></div>
+        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:list') }}"><i class="bi bi-calendar2-check fs-4" aria-hidden="true"></i><strong>Attendance</strong><span class="text-muted small">Today's records</span></a></div>
+        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('employees:list') }}"><i class="bi bi-people fs-4" aria-hidden="true"></i><strong>Employees</strong><span class="text-muted small">Active list</span></a></div>
         {% if can_admin %}
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('recognition:live') }}"><i class="bi bi-broadcast-pin fs-4" aria-hidden="true"></i><strong>Jonli kuzatuv</strong><span class="text-muted small">Kamera oqimlari</span></a></div>
+        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('recognition:live') }}"><i class="bi bi-broadcast-pin fs-4" aria-hidden="true"></i><strong>Live View</strong><span class="text-muted small">Camera streams</span></a></div>
         {% else %}
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:unknown') }}"><i class="bi bi-person-x fs-4" aria-hidden="true"></i><strong>Noma'lumlar</strong><span class="text-muted small">Ko'rib chiqish navbati</span></a></div>
+        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:unknown') }}"><i class="bi bi-person-x fs-4" aria-hidden="true"></i><strong>Unknowns</strong><span class="text-muted small">Review queue</span></a></div>
         {% endif %}
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:export') }}?day={{ today }}"><i class="bi bi-file-earmark-arrow-down fs-4" aria-hidden="true"></i><strong>Hisobot</strong><span class="text-muted small">CSV eksport</span></a></div>
+        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:export') }}?day={{ today }}"><i class="bi bi-file-earmark-arrow-down fs-4" aria-hidden="true"></i><strong>Report</strong><span class="text-muted small">CSV export</span></a></div>
     </div>
 </section>
 
 <div class="row g-4 mb-4">
     <section class="col-12 {% if can_admin %}col-xl-7{% endif %}" aria-labelledby="recentEventsHeading">
         <div class="airi-card h-100 p-3">
-            <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h4 mb-0" id="recentEventsHeading">So'nggi tanishlar</h2><span class="text-muted small">Oxirgi 12 ta</span></div>
+            <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h4 mb-0" id="recentEventsHeading">Recent Identifications</h2><span class="text-muted small">Last 12</span></div>
             <div class="vstack gap-3">
                 {% for event in recent_events %}
                 <article class="d-flex gap-3 align-items-center border-bottom pb-3">
                     {% if event.snapshot %}
                     <button class="border-0 bg-transparent p-0" type="button" data-evidence-src="{{ event.snapshot }}" data-evidence-title="{{ event.employee_name }}" data-evidence-subtitle="{{ event.camera }} · {{ event.action_type }}">
-                        <img class="dashboard-evidence" src="{{ event.snapshot }}" alt="{{ event.employee_name }} uchun tanish dalili" loading="lazy">
+                        <img class="dashboard-evidence" src="{{ event.snapshot }}" alt="Recognition evidence for {{ event.employee_name }}" loading="lazy">
                     </button>
                     {% else %}
-                    <span class="dashboard-evidence d-flex align-items-center justify-content-center text-muted small" aria-label="Dalil mavjud emas"><i class="bi bi-image" aria-hidden="true"></i></span>
+                    <span class="dashboard-evidence d-flex align-items-center justify-content-center text-muted small" aria-label="No evidence available"><i class="bi bi-image" aria-hidden="true"></i></span>
                     {% endif %}
                     <div class="flex-grow-1 min-w-0">
                         <strong class="d-block text-truncate {% if event.voided %}text-decoration-line-through text-muted{% endif %}">{{ event.employee_name }}</strong>
-                        <span class="text-muted small">{{ event.camera|default("Kamera noma'lum") }}</span>
-                        {% if event.voided and can_correct %}<span class="d-block text-danger small">Bekor qilingan{% if event.void_reason %} · {{ event.void_reason }}{% endif %}</span>{% endif %}
+                        <span class="text-muted small">{{ event.camera|default("Unknown Camera") }}</span>
+                        {% if event.voided and can_correct %}<span class="d-block text-danger small">Voided{% if event.void_reason %} · {{ event.void_reason }}{% endif %}</span>{% endif %}
                         {% if can_correct %}
                         <form method="post" class="d-inline"
                               action="{{ PREFIX }}/attendance/event/{{ event.id }}/{{ 'unvoid' if event.voided else 'void' }}"
-                              {% if not event.voided %}onsubmit="return confirm('{{ event.employee_name|escapejs }} emasmi? Shu kun qaytadan hisoblanadi.')"{% endif %}>
+                              {% if not event.voided %}onsubmit="return confirm('{{ event.employee_name|escapejs }}? This day will be recalculated.')"{% endif %}>
                             <input type="hidden" name="next" value="{{ PREFIX }}/">
-                            {% if not event.voided %}<input type="hidden" name="reason" value="bu u emas">{% endif %}
+                            {% if not event.voided %}<input type="hidden" name="reason" value="not them">{% endif %}
                             <button class="btn btn-link btn-sm p-0 text-decoration-none {{ 'text-secondary' if event.voided else 'text-danger' }}" type="submit">
-                                {{ "Qaytarish" if event.voided else "Bu u emas" }}
+                                {{ "Undo Void" if event.voided else "Not Them" }}
                             </button>
                         </form>
                         {% endif %}
@@ -76,7 +76,7 @@
                     <div class="text-end"><span class="status-chip {% if event.voided %}status-chip--danger{% elif event.action_type == 'IN' %}status-chip--success{% else %}status-chip--warning{% endif %}">{{ event.action_type }}</span><span class="d-block text-muted small mt-1">{{ event.timestamp|date("H:i") }} · {{ event.confidence|floatformat(3) }}</span></div>
                 </article>
                 {% else %}
-                <p class="text-muted text-center py-4 mb-0">Hozircha tanishlar yo'q</p>
+                <p class="text-muted text-center py-4 mb-0">No recognitions yet</p>
                 {% endfor %}
             </div>
         </div>
@@ -84,12 +84,12 @@
     {% if can_admin %}
     <section class="col-12 col-xl-5" aria-labelledby="systemHealthHeading">
         <div class="airi-card h-100 p-3">
-            <h2 class="h4 mb-3" id="systemHealthHeading">Tizim holati</h2>
+            <h2 class="h4 mb-3" id="systemHealthHeading">System Status</h2>
             <div class="vstack gap-3">
                 {% for camera in camera_health %}
-                <article class="d-flex justify-content-between gap-3 border-bottom pb-3"><div><strong class="d-block">{{ camera.name }}</strong><span class="text-muted small">{{ camera.role }} · {{ camera.detail }}</span></div><div class="text-end"><span class="status-chip {% if camera.state == 'online' %}status-chip--success{% elif camera.state == 'offline' %}status-chip--danger{% else %}status-chip--warning{% endif %}">{{ camera.state_label }}</span><span class="d-block text-muted small mt-1">{% if camera.fps is not none %}{{ camera.fps }} FPS{% else %}FPS mavjud emas{% endif %}{% if camera.pipeline_errors is not none %} · Xatolar: {{ camera.pipeline_errors }}{% endif %}</span></div></article>
+                <article class="d-flex justify-content-between gap-3 border-bottom pb-3"><div><strong class="d-block">{{ camera.name }}</strong><span class="text-muted small">{{ camera.role }} · {{ camera.detail }}</span></div><div class="text-end"><span class="status-chip {% if camera.state == 'online' %}status-chip--success{% elif camera.state == 'offline' %}status-chip--danger{% else %}status-chip--warning{% endif %}">{{ camera.state_label }}</span><span class="d-block text-muted small mt-1">{% if camera.fps is not none %}{{ camera.fps }} FPS{% else %}FPS N/A{% endif %}{% if camera.pipeline_errors is not none %} · Errors: {{ camera.pipeline_errors }}{% endif %}</span></div></article>
                 {% else %}
-                <p class="text-muted text-center py-4 mb-0">Faol kameralar sozlanmagan</p>
+                <p class="text-muted text-center py-4 mb-0">Active cameras not configured</p>
                 {% endfor %}
             </div>
         </div>
@@ -98,19 +98,19 @@
 </div>
 
 <section class="airi-card p-3 mb-4" aria-labelledby="todayTableHeading">
-    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h4 mb-0" id="todayTableHeading">Bugungi kelish-ketish</h2><span class="text-muted small">{{ today|date("d.m.Y") }}</span></div>
-    <div class="data-table"><table class="table align-middle"><thead><tr><th>Xodim</th><th>Bo'lim</th><th>IN</th><th>OUT</th><th>Dalil</th></tr></thead><tbody>
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h4 mb-0" id="todayTableHeading">Today's Arrivals/Departures</h2><span class="text-muted small">{{ today|date("d.m.Y") }}</span></div>
+    <div class="data-table"><table class="table align-middle"><thead><tr><th>Employee</th><th>Department</th><th>IN</th><th>OUT</th><th>Evidence</th></tr></thead><tbody>
         {% for record in today_attendance %}
-        <tr><td>{% if record.employee %}<a class="fw-semibold text-decoration-none" href="{{ url('employees:detail', record.employee.id) }}">{{ record.employee.full_name }}</a>{% else %}Noma'lum{% endif %}</td><td>{{ record.employee.department if record.employee else "—" }}</td><td>{{ record.check_in_time|date("H:i")|default("—") }}</td><td>{{ record.check_out_time|date("H:i")|default("—") }}</td><td class="text-nowrap">{% if record.check_in_snapshot %}<button class="btn btn-sm btn-outline-primary" type="button" data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN dalili" data-evidence-subtitle="{{ record.employee_name }}">IN</button>{% endif %}{% if record.check_out_snapshot %}<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT dalili" data-evidence-subtitle="{{ record.employee_name }}">OUT</button>{% endif %}{% if not record.check_in_snapshot and not record.check_out_snapshot %}<span class="text-muted">Mavjud emas</span>{% endif %}</td></tr>
+        <tr><td>{% if record.employee %}<a class="fw-semibold text-decoration-none" href="{{ url('employees:detail', record.employee.id) }}">{{ record.employee.full_name }}</a>{% else %}Unknown{% endif %}</td><td>{{ record.employee.department if record.employee else "—" }}</td><td>{{ record.check_in_time|date("H:i")|default("—") }}</td><td>{{ record.check_out_time|date("H:i")|default("—") }}</td><td class="text-nowrap">{% if record.check_in_snapshot %}<button class="btn btn-sm btn-outline-primary" type="button" data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN Evidence" data-evidence-subtitle="{{ record.employee_name }}">IN</button>{% endif %}{% if record.check_out_snapshot %}<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT Evidence" data-evidence-subtitle="{{ record.employee_name }}">OUT</button>{% endif %}{% if not record.check_in_snapshot and not record.check_out_snapshot %}<span class="text-muted">N/A</span>{% endif %}</td></tr>
         {% else %}
-        <tr><td colspan="5" class="text-center text-muted py-4">Bugun davomat qaydlari yo'q</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">No attendance records today</td></tr>
         {% endfor %}
     </tbody></table></div>
 </section>
 
 <div class="row g-4">
-    <section class="col-12 col-lg-6" aria-labelledby="weeklyChartHeading"><div class="airi-card p-3 h-100"><h2 class="h4 mb-3" id="weeklyChartHeading">Haftalik davomat</h2><div class="dashboard-chart"><canvas id="weeklyChart" aria-label="Haftalik davomat grafigi"></canvas></div></div></section>
-    <section class="col-12 col-lg-6" aria-labelledby="monthlyChartHeading"><div class="airi-card p-3 h-100"><h2 class="h4 mb-3" id="monthlyChartHeading">Oylik davomat</h2><div class="dashboard-chart"><canvas id="monthlyChart" aria-label="Oylik davomat grafigi"></canvas></div></div></section>
+    <section class="col-12 col-lg-6" aria-labelledby="weeklyChartHeading"><div class="airi-card p-3 h-100"><h2 class="h4 mb-3" id="weeklyChartHeading">Weekly Attendance</h2><div class="dashboard-chart"><canvas id="weeklyChart" aria-label="Weekly attendance chart"></canvas></div></div></section>
+    <section class="col-12 col-lg-6" aria-labelledby="monthlyChartHeading"><div class="airi-card p-3 h-100"><h2 class="h4 mb-3" id="monthlyChartHeading">Monthly Attendance</h2><div class="dashboard-chart"><canvas id="monthlyChart" aria-label="Monthly attendance chart"></canvas></div></div></section>
 </div>
 {% endblock %}
 
@@ -138,7 +138,7 @@
         const target = document.getElementById(targetId);
         if (!target) return;
         const colors = themeColors();
-        charts[key] = new Chart(target, { type, data: { labels: data.map((item) => item.label), datasets: [{ label: 'Davomat', data: data.map((item) => item.present), borderColor: colors.success, backgroundColor: colors.success, borderWidth: 2, tension: .35, fill: type === 'line' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: colors.text }, grid: { color: colors.grid } }, y: { beginAtZero: true, ticks: { precision: 0, color: colors.text }, grid: { color: colors.grid } } }, plugins: { legend: { display: false } } } });
+        charts[key] = new Chart(target, { type, data: { labels: data.map((item) => item.label), datasets: [{ label: 'Attendance', data: data.map((item) => item.present), borderColor: colors.success, backgroundColor: colors.success, borderWidth: 2, tension: .35, fill: type === 'line' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: colors.text }, grid: { color: colors.grid } }, y: { beginAtZero: true, ticks: { precision: 0, color: colors.text }, grid: { color: colors.grid } } }, plugins: { legend: { display: false } } } });
     };
     document.addEventListener('DOMContentLoaded', () => {
         createChart('weekly', 'weeklyChart', 'line', chartData('weekly-chart-data'));

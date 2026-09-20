@@ -31,16 +31,16 @@ ROLE_VIEWER = "viewer"
 
 ROLE_LABELS = {
     ROLE_ADMIN: "Administrator",
-    ROLE_OPERATOR: "Davomat operatori",
-    ROLE_VIEWER: "Kuzatuvchi",
+    ROLE_OPERATOR: "Attendance Operator",
+    ROLE_VIEWER: "Viewer",
 }
 
 ROLE_HELP = {
-    ROLE_ADMIN: "Hamma narsa: kameralar, galereya, foydalanuvchilar, jonli kuzatuv.",
-    ROLE_OPERATOR: ("Davomat va noma'lumlar bilan ishlaydi, xato tanishlarni "
-                    "bekor qila oladi. Kameralar, galereya, jonli kuzatuv va "
-                    "foydalanuvchilar ko'rinmaydi."),
-    ROLE_VIEWER: "Faqat o'qiydi; hech narsani o'zgartira olmaydi.",
+    ROLE_ADMIN: "Full access: cameras, gallery, users, live monitoring.",
+    ROLE_OPERATOR: ("Works with attendance and unknowns, can void incorrect "
+                    "recognitions. Cameras, gallery, live view, and "
+                    "user management are hidden."),
+    ROLE_VIEWER: "Read-only access; cannot make any changes.",
 }
 
 ROLES = tuple(ROLE_LABELS)

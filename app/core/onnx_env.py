@@ -60,6 +60,15 @@ def preload_cuda_libs() -> int:
     if _done:
         return 0
     loaded = 0
+    if sys.platform == "win32":
+        torch_lib = Path(sys.prefix) / "Lib" / "site-packages" / "torch" / "lib"
+        if torch_lib.is_dir():
+            try:
+                os.add_dll_directory(str(torch_lib))
+                loaded += 1
+            except Exception as e:
+                log.debug("os.add_dll_directory failed: %s", e)
+            os.environ["PATH"] = str(torch_lib) + os.pathsep + os.environ.get("PATH", "")
     for base in _site_dirs():
         for rel in _PRELOAD:
             p = base / rel

@@ -31,10 +31,10 @@ function applyTheme(theme, { persist = false } = {}) {
     root.dataset.theme = selectedTheme;
     if (toggle) {
         toggle.setAttribute('aria-pressed', String(isDark));
-        toggle.setAttribute('aria-label', isDark ? "Tungi mavzu" : "Yorug' mavzu");
+        toggle.setAttribute('aria-label', isDark ? "Dark Theme" : "Light Theme");
     }
     if (label) {
-        label.textContent = isDark ? 'Tungi mavzu' : "Yorug' mavzu";
+        label.textContent = isDark ? 'Dark Theme' : 'Light Theme';
     }
     if (icon) {
         icon.className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
@@ -75,7 +75,7 @@ function initialiseEvidenceModal() {
         }
 
         const safeSource = typeof src === 'string' && src.trim() ? src.trim() : '';
-        const safeTitle = typeof title === 'string' && title.trim() ? title.trim() : 'Dalil';
+        const safeTitle = typeof title === 'string' && title.trim() ? title.trim() : 'Evidence';
         const safeSubtitle = typeof subtitle === 'string' ? subtitle.trim() : '';
 
         titleElement.textContent = safeTitle;

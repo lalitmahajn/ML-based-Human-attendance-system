@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}AIRI - Ruxsat yo'q{% endblock %}
+{% block title %}AIRI - Forbidden{% endblock %}
 
 {% block content %}
 <div class="text-center py-5">
   <i class="bi bi-shield-lock display-4 text-secondary" aria-hidden="true"></i>
-  <h1 class="h4 mt-3">Ruxsat yo'q</h1>
-  <p class="text-secondary">Bu sahifa faqat admin huquqiga ega hisoblar uchun.</p>
-  <a class="btn btn-outline-primary mt-2" href="{{ url('dashboard:home') }}"><i class="bi bi-house" aria-hidden="true"></i> Boshqaruvga qaytish</a>
+  <h1 class="h4 mt-3">Access Denied</h1>
+  <p class="text-secondary">This page is restricted to accounts with admin privileges.</p>
+  <a class="btn btn-outline-primary mt-2" href="{{ url('dashboard:home') }}"><i class="bi bi-house" aria-hidden="true"></i> Return to Dashboard</a>
 </div>
 {% endblock %}

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Galereyani boyitish{% endblock %}
+{% block title %}Enrich Gallery{% endblock %}
 {% block content %}
 <section class="page-header">
   <p class="eyebrow mb-2">Admin</p>
-  <h1>Galereyani koridor kadrlari bilan boyitish</h1>
+  <h1>Enrich Gallery with Hallway Frames</h1>
   <p class="mb-0 text-muted">
-    Ro'yxatdagi suratlar studiya sharoitida olingan; koridor esa boshqacha.
-    Tanigan o'tishlardan olingan kadrni galereyaga qo'shish keyingi safar
-    tanishni osonlashtiradi. <strong>Har bir kadrni ko'rib chiqing:</strong>
-    noto'g'ri kadr o'sha odam uchun doimiy namuna bo'lib qoladi va xato
-    ortib boradi.
+    Enrolled photos are taken in studio conditions; hallway is different.
+    Adding a captured frame from recognized passings to the gallery makes next
+    recognitions easier. <strong>Review each frame carefully:</strong>
+    an incorrect frame will become a permanent sample for that person and errors
+    will accumulate.
   </p>
 </section>
 
@@ -20,25 +20,25 @@
 <section class="airi-card mb-4 border-warning">
   <h2 class="h5 mb-1 text-warning-emphasis">
     <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-    Ro'yxat suratlarining o'zida muammo bor
+    There is an issue with the enrolled photos themselves
   </h2>
   <p class="text-muted mb-3">
-    Quyidagi juftliklarda ikki <strong>har xil</strong> xodimning yuzlari
-    bir-biriga o'sha yozuv <em>o'z chegarasidan</em> yuqori o'xshaydi &mdash;
-    ya'ni bu ikki kishi bugun bir-biri deb yozilishi mumkin. Ro'yxat surati
-    umumiy chegarada ({{ "%.3f"|format(gallery.threshold) }}), koridor kadri
-    esa o'zining yuqori chegarasida ishlaydi, shuning uchun har bir yozuv
-    o'zining o'lchoviga qarab baholanadi. Suratlarni ko'ring: agar biri
-    sifatsiz, qiya yoki boshqa odamniki bo'lsa, o'sha bittasini o'chiring.
+    In the following pairs, the faces of two <strong>different</strong> employees are
+    similar to each other above <em>its own threshold</em> &mdash;
+    meaning these two people might be confused today. Enrolled photo uses
+    the general threshold ({{ "%.3f"|format(gallery.threshold) }}), hallway frame
+    operates at its higher threshold, so each record is evaluated according to
+    its metric. Review the photos: if one is poor quality, angled, or belongs to
+    another person, remove that one.
   </p>
   <form method="post" action="{{ PREFIX }}/gallery/enrolment/remove"
-        onsubmit="return confirm('Belgilangan ro\'yxat suratlari galereyadan o\'chiriladi. Davom etilsinmi?')">
+        onsubmit="return confirm('Selected enrolled photos will be removed from the gallery. Continue?')">
     {% for pair in worst_pairs %}
     <div class="border rounded p-3 mb-3">
       <div class="mb-2">
-        o'xshashlik <strong class="text-danger">{{ "%.3f"|format(pair.similarity) }}</strong>
-        &nbsp;·&nbsp; chegara {{ "%.3f"|format(pair.threshold) }}
-        &nbsp;·&nbsp; <span class="text-muted">o'z chegarasi hisobga olinganda
+        similarity <strong class="text-danger">{{ "%.3f"|format(pair.similarity) }}</strong>
+        &nbsp;·&nbsp; threshold {{ "%.3f"|format(pair.threshold) }}
+        &nbsp;·&nbsp; <span class="text-muted">considering its own threshold
         {{ "%.3f"|format(pair.effective) }}</span>
       </div>
       <div class="d-flex flex-wrap gap-4 align-items-start">
@@ -47,30 +47,30 @@
           <img src="{{ PREFIX }}/gallery/enrolment/{{ side.id }}"
                alt="{{ side.name }}" loading="lazy"
                style="width:180px;height:180px;object-fit:cover;border-radius:8px"
-               onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'text-muted small border rounded d-flex align-items-center justify-content-center',style:'width:180px;height:180px',textContent:'Surat fayli yo\'q'}))">
+               onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'text-muted small border rounded d-flex align-items-center justify-content-center',style:'width:180px;height:180px',textContent:'No image file'}))">
           <div class="small mt-2">
             <strong>{{ side.name }}</strong><br>
             <span class="badge {{ 'bg-info-subtle text-info-emphasis' if side.live else 'bg-secondary-subtle text-secondary-emphasis' }}">
-              {{ "koridor kadri" if side.live else "ro'yxat surati" }}</span>
+              {{ "hallway frame" if side.live else "enrolled photo" }}</span>
             <span class="text-muted d-block" style="font-size:11px">
-              {{ side.file }} · chegara {{ "%.3f"|format(side.floor) }}</span>
+              {{ side.file }} · threshold {{ "%.3f"|format(side.floor) }}</span>
           </div>
           <div class="form-check d-inline-flex align-items-center gap-1 mt-1">
             <input class="form-check-input mt-0" type="checkbox" name="id" value="{{ side.id }}">
-            <span class="small">shu suratni o'chirish</span>
+            <span class="small">remove this photo</span>
           </div>
         </label>
         {% endfor %}
       </div>
     </div>
     {% endfor %}
-    <button class="btn btn-outline-danger" type="submit">Belgilanganlarni o'chirish</button>
+    <button class="btn btn-outline-danger" type="submit">Remove Selected</button>
     <small class="text-muted d-block mt-2">
-      Faqat galereyadagi yozuv o'chiriladi; fayl <code>face_id_users/</code> da
-      qoladi va <code>scripts/enroll.py</code> qayta ishga tushirilsa yana
-      qo'shiladi. Odamning oxirgi surati o'chirilmaydi &mdash; aks holda u
-      hech qachon tanilmay qolardi va buning sababi hech qayerda ko'rinmasdi.
-      Eng yaxshi yechim &mdash; o'sha xodimni qayta suratga olish.
+      Only the gallery record is removed; the file remains in <code>face_id_users/</code>
+      and will be added again if <code>scripts/enroll.py</code> is run. The person's
+      last photo is not deleted &mdash; otherwise they would never be recognized
+      and the reason would not be visible anywhere. Best solution is to retake
+      the employee's photo.
     </small>
   </form>
 </section>
@@ -79,21 +79,21 @@
 <section class="airi-card mb-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h2 class="h5 mb-1">Nomzodlar: {{ total }}</h2>
+      <h2 class="h5 mb-1">Candidates: {{ total }}</h2>
       <small class="text-muted">
-        Tanish chegarasi {{ "%.3f"|format(threshold) }} ·
-        faqat yuqori ball va aniq farqli o'tishlar ko'rsatiladi
+        Recognition threshold {{ "%.3f"|format(threshold) }} ·
+        only high scores and distinctly different passings are shown
       </small>
     </div>
     <a class="btn btn-outline-secondary btn-sm"
-       href="{{ PREFIX }}/gallery/review?refresh=1">Qayta skanerlash</a>
+       href="{{ PREFIX }}/gallery/review?refresh=1">Rescan</a>
   </div>
 
   {% if not groups %}
     <p class="text-muted mb-0">
-      Hozircha mos nomzod yo'q. Bu odatiy holat: faqat ball yuqori, farqi
-      aniq va ko'p kadrda tasdiqlangan o'tishlar tavsiya etiladi. Bir necha
-      kun ma'lumot to'plangach yana ko'ring.
+      No suitable candidates at the moment. This is normal: only passings with high scores,
+      clear margins, and confirmed in multiple frames are recommended. Check again after a few
+      days of data collection.
     </p>
   {% else %}
   <form method="post" action="{{ PREFIX }}/gallery/augment">
@@ -106,11 +106,11 @@
             <img src="{{ PREFIX }}/gallery/crop/{{ c.key }}" alt="{{ name }}"
                  style="width:112px;height:112px;object-fit:cover" loading="lazy">
             <div class="small mt-1">
-              ball <strong>{{ "%.3f"|format(c.score) }}</strong><br>
-              farq <strong>{{ "%.3f"|format(c.margin) }}</strong><br>
-              chegara <strong>{{ "%.3f"|format(c.threshold) }}</strong><br>
-              <span class="text-muted">boshqa yuz {{ "%.3f"|format(c.impostor) }}</span><br>
-              <span class="text-muted">{{ c.camera }} · {{ c.frames }} kadr</span><br>
+              score <strong>{{ "%.3f"|format(c.score) }}</strong><br>
+              margin <strong>{{ "%.3f"|format(c.margin) }}</strong><br>
+              threshold <strong>{{ "%.3f"|format(c.threshold) }}</strong><br>
+              <span class="text-muted">other face {{ "%.3f"|format(c.impostor) }}</span><br>
+              <span class="text-muted">{{ c.camera }} · {{ c.frames }} frames</span><br>
               <span class="text-muted" style="font-size:11px">{{ c.when }}</span>
             </div>
             <input type="checkbox" name="key" value="{{ c.key }}" class="mt-1">
@@ -119,26 +119,25 @@
         </div>
       </div>
     {% endfor %}
-    <button class="btn btn-primary" type="submit">Tanlanganlarni qo'shish</button>
+    <button class="btn btn-primary" type="submit">Add Selected</button>
     <small class="text-muted d-block mt-2">
-      Koridor kadri ro'yxat suratidan <strong>yuqori chegara</strong> bilan
-      ishlaydi: {{ "%.3f"|format(live_floor) }}, umumiy
-      {{ "%.3f"|format(threshold) }} o'rniga. Sababi o'lchangan: chegarasiz
-      koridor kadrlari noma'lum yuzlarning 21.7% iga ism berardi, ro'yxat
-      suratlari esa atigi 2-3% iga. {{ "%.3f"|format(live_floor) }} da bu
-      1.9% ga tushadi &mdash; ya'ni kadr ro'yxat suratidan xavfsizroq bo'ladi,
-      va tanishning 89% i saqlanadi. "boshqa yuz" ustuni &mdash; shu kadrga
-      eng yaqin kelgan begona yuz; agar u chegaradan yuqori bo'lsa, kadr
-      o'xshash deb rad etiladi.
+      Hallway frame operates with a <strong>higher threshold</strong> than enrolled
+      photo: {{ "%.3f"|format(live_floor) }}, instead of general
+      {{ "%.3f"|format(threshold) }}. The reason is measured: without threshold,
+      hallway frames assigned names to 21.7% of unknown faces, while enrolled photos
+      only 2-3%. At {{ "%.3f"|format(live_floor) }} this drops to 1.9% &mdash; meaning
+      the frame is safer than the enrolled photo, and 89% of recognition is preserved.
+      The "other face" column is the closest stranger to this frame; if it is above
+      threshold, the frame is rejected as too similar.
     </small>
   </form>
   {% endif %}
 </section>
 
 <section class="airi-card">
-  <h2 class="h5 mb-3">Qo'shilgan koridor kadrlari: {{ existing|length }}</h2>
+  <h2 class="h5 mb-3">Added hallway frames: {{ existing|length }}</h2>
   {% if not existing %}
-    <p class="text-muted mb-0">Hali hech narsa qo'shilmagan.</p>
+    <p class="text-muted mb-0">Nothing added yet.</p>
   {% else %}
   <form method="post" action="{{ PREFIX }}/gallery/augment/remove">
     <div class="d-flex flex-wrap gap-3 mb-3">
@@ -147,19 +146,18 @@
         <img src="{{ PREFIX }}/gallery/crop/{{ e.key }}" alt="{{ e.name }}"
              style="width:112px;height:112px;object-fit:cover" loading="lazy">
         <div class="small mt-1">{{ e.name }}<br>
-          <span class="text-muted">farq {{ "%.3f"|format(e.margin) }}</span><br>
+          <span class="text-muted">margin {{ "%.3f"|format(e.margin) }}</span><br>
           <span class="{{ 'text-danger' if e.reached else 'text-muted' }}">
-            chegara {{ "%.3f"|format(e.threshold) }}
-            {%- if e.reached %} · boshqa yuz {{ "%.3f"|format(e.reached) }} ·
-            o'xshash, o'chirish tavsiya etiladi{% endif %}</span></div>
+            threshold {{ "%.3f"|format(e.threshold) }}
+            {%- if e.reached %} · other face {{ "%.3f"|format(e.reached) }} ·
+            similar, recommended to remove{% endif %}</span></div>
         <input type="checkbox" name="id" value="{{ e.id }}" class="mt-1">
       </label>
       {% endfor %}
     </div>
-    <button class="btn btn-outline-danger" type="submit">Tanlanganlarni o'chirish</button>
+    <button class="btn btn-outline-danger" type="submit">Remove Selected</button>
     <small class="text-muted d-block mt-2">
-      Faqat koridordan qo'shilgan kadrlar o'chiriladi; ro'yxatdan o'tish
-      suratlariga tegilmaydi.
+      Only frames added from hallway will be removed; enrolled photos are not touched.
     </small>
   </form>
   {% endif %}

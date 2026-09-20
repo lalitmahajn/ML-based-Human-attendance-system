@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Xodimni ro'yxatdan o'tkazish{% endblock %}
+{% block title %}Employee Registration{% endblock %}
 {% block content %}
 <section class="page-header enrollment-workflow__header">
-    <p class="eyebrow mb-2">Ikki bosqichli ro'yxatdan o'tkazish</p>
-    <h1>Xodimni ro'yxatdan o'tkazish</h1>
-    <p class="mb-0 text-muted">Avval xodim ma'lumotlarini kiriting, keyin bir nechta sifatli yuz namunasini oling.</p>
+    <p class="eyebrow mb-2">Two-step registration</p>
+    <h1>Employee Registration</h1>
+    <p class="mb-0 text-muted">First enter employee details, then capture several quality face samples.</p>
 </section>
-<ol class="enrollment-workflow__steps" aria-label="Ro'yxatdan o'tkazish bosqichlari">
-    <li class="is-current"><span>1</span><div><strong>Ma'lumotlar</strong><small>Xodim profili</small></div></li>
-    <li><span>2</span><div><strong>Yuz namunasi</strong><small>Olish va tekshirish</small></div></li>
+<ol class="enrollment-workflow__steps" aria-label="Registration Steps">
+    <li class="is-current"><span>1</span><div><strong>Details</strong><small>Employee profile</small></div></li>
+    <li><span>2</span><div><strong>Face Sample</strong><small>Capture and validation</small></div></li>
 </ol>
 <div class="row g-4 justify-content-center">
     <div class="col-12 col-lg-10 col-xl-8">
         <section class="airi-card enrollment-stage">
             <div class="enrollment-stage__header">
                 <div>
-                    <p class="eyebrow mb-1">1-bosqich</p>
-                    <h2 class="h5 mb-0">1. Xodim ma'lumotlari</h2>
+                    <p class="eyebrow mb-1">Step 1</p>
+                    <h2 class="h5 mb-0">1. Employee Details</h2>
                 </div>
                 <i class="bi bi-person-vcard enrollment-stage__icon" aria-hidden="true"></i>
             </div>
@@ -28,28 +28,28 @@
                     <div id="enrollmentResult" class="mb-3" role="status" aria-live="polite">
                         {% if enrollment_error %}
                         <div class="alert alert-danger" role="alert">
-                            <strong>Ro'yxatdan o'tkazilmadi.</strong> {{ enrollment_error }}
+                            <strong>Registration failed.</strong> {{ enrollment_error }}
                         </div>
                         {% endif %}
                         {% if enrollment_success %}
                         <div class="alert alert-success">
-                            <strong>Ro'yxatdan o'tkazildi.</strong> {{ enrollment_success }}
+                            <strong>Registered.</strong> {{ enrollment_success }}
                             {% if enrollment_redirect_url %}
-                            <a class="alert-link d-block mt-2" href="{{ enrollment_redirect_url }}">Xodim sahifasini ochish</a>
+                            <a class="alert-link d-block mt-2" href="{{ enrollment_redirect_url }}">Open Employee Page</a>
                             {% endif %}
                         </div>
                         {% endif %}
                         {% if enrollment_warning %}
                         <div class="alert alert-warning" role="alert">
-                            <strong>Diqqat.</strong> {{ enrollment_warning }}
+                            <strong>Attention.</strong> {{ enrollment_warning }}
                             {% if enrollment_redirect_url %}
-                            <a class="alert-link d-block mt-2" href="{{ enrollment_redirect_url }}">Xodim sahifasini ochish</a>
+                            <a class="alert-link d-block mt-2" href="{{ enrollment_redirect_url }}">Open Employee Page</a>
                             {% endif %}
                         </div>
                         {% endif %}
                         {% if enrollment_rejections %}
                         <div class="alert alert-warning" role="alert">
-                            <strong>Rad etilgan rasmlar:</strong>
+                            <strong>Rejected images:</strong>
                             <ul class="mb-0 mt-2">
                                 {% for rejection in enrollment_rejections %}
                                 <li><strong>{{ rejection.source_file }}</strong>: {{ rejection.error }}</li>
@@ -61,28 +61,28 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="full_name" class="form-label fw-semibold">
-                                <i class="bi bi-person me-2"></i>To'liq ism
+                                <i class="bi bi-person me-2"></i>Full Name
                             </label>
                             <input type="text" name="full_name" id="full_name" class="form-control" required
                                 value="{{ employee.full_name|default('') if employee else '' }}">
                         </div>
                         <div class="col-md-6">
                             <label for="position" class="form-label fw-semibold">
-                                <i class="bi bi-briefcase me-2"></i>Lavozim
+                                <i class="bi bi-briefcase me-2"></i>Position
                             </label>
                             <input type="text" name="position" id="position" class="form-control"
                                 value="{{ employee.position|default('') if employee else '' }}">
                         </div>
                         <div class="col-md-6">
                             <label for="department" class="form-label fw-semibold">
-                                <i class="bi bi-building me-2"></i>Bo'lim
+                                <i class="bi bi-building me-2"></i>Department
                             </label>
                             <input type="text" name="department" id="department" class="form-control"
                                 value="{{ employee.department|default('') if employee else '' }}">
                         </div>
                         <div class="col-md-6">
                             <label for="phone_number" class="form-label fw-semibold">
-                                <i class="bi bi-telephone me-2"></i>Telefon raqami
+                                <i class="bi bi-telephone me-2"></i>Phone Number
                             </label>
                             <input type="tel" name="phone_number" id="phone_number" class="form-control"
                                 value="{{ employee.phone_number|default('') if employee else '' }}">
@@ -96,7 +96,7 @@
                         </div>
                         <div class="col-12">
                             <label for="notes" class="form-label fw-semibold">
-                                <i class="bi bi-sticky me-2"></i>Izoh
+                                <i class="bi bi-sticky me-2"></i>Notes
                             </label>
                             <textarea name="notes" id="notes" class="form-control"
                                 rows="3">{{ employee.notes|default('') if employee else '' }}</textarea>
@@ -104,7 +104,7 @@
                     </div>
                     <div class="d-flex justify-content-end mt-4">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle me-2"></i>Xodimni saqlash
+                            <i class="bi bi-check-circle me-2"></i>Save Employee
                         </button>
                     </div>
                 </form>
@@ -115,11 +115,11 @@
         <section class="airi-card enrollment-stage">
             <div class="enrollment-stage__header">
                 <div>
-                    <p class="eyebrow mb-1">2-bosqich</p>
-                    <h2 class="h5 mb-0">2. Yuz namunasini olish</h2>
+                    <p class="eyebrow mb-1">Step 2</p>
+                    <h2 class="h5 mb-0">2. Capture Face Sample</h2>
                 </div>
                 <div class="recognition-status">
-                    <span class="status-in" id="captureStatus">Kutilmoqda...</span>
+                    <span class="status-in" id="captureStatus">Waiting...</span>
                 </div>
             </div>
             <div class="enrollment-stage__body text-center">
@@ -127,12 +127,12 @@
                     <div class="d-flex align-items-start gap-3">
                         <i class="bi bi-images enrollment-stage__icon" aria-hidden="true"></i>
                         <div class="flex-grow-1">
-                            <h3 id="uploadImagesTitle" class="h6 mb-1">Rasm yuklash</h3>
+                            <h3 id="uploadImagesTitle" class="h6 mb-1">Upload Image</h3>
                             <p class="text-muted small mb-3">
-                                Kameraga qo'shimcha yoki uning o'rniga bir nechta JPEG, PNG yoki WebP yuz rasmini tanlang.
-                                Jami 32 tagacha, har biri ko'pi bilan 4 MB; barcha rasmlar birga 10 MB dan oshmasin.
+                                Select multiple JPEG, PNG or WebP face images in addition to or instead of the camera.
+                                Up to 32 images total, max 4 MB each; total size must not exceed 10 MB.
                             </p>
-                            <label for="uploadedImages" class="form-label fw-semibold">Yuz rasmlarini tanlang</label>
+                            <label for="uploadedImages" class="form-label fw-semibold">Select face images</label>
                             <input class="form-control" type="file" name="uploaded_images" id="uploadedImages"
                                 accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple
                                 form="registrationForm">
@@ -141,14 +141,14 @@
                             <div id="uploadPreviewList" class="enrollment-upload__previews mt-3"
                                 aria-live="polite"></div>
                             <noscript>
-                                <p class="small text-muted mt-2 mb-0">JavaScript o'chirilgan: fayllarni olib tashlash uchun tanlovni qayta oching.</p>
+                                <p class="small text-muted mt-2 mb-0">JavaScript disabled: reopen selection to remove files.</p>
                             </noscript>
                         </div>
                     </div>
                 </section>
                 <div class="d-flex align-items-center gap-2 mb-3" aria-hidden="true">
                     <span class="flex-grow-1 border-top"></span>
-                    <span class="small text-muted fw-semibold">yoki kameradan oling</span>
+                    <span class="small text-muted fw-semibold">or capture from camera</span>
                     <span class="flex-grow-1 border-top"></span>
                 </div>
                 {% if use_ip_camera %}
@@ -188,14 +188,14 @@
                     <div class="d-flex align-items-start gap-2 text-start">
                         <i class="bi bi-shield-check" aria-hidden="true"></i>
                         <div>
-                            <h3 id="qualityGuidance" class="h6">Sifat tekshiruvi</h3>
-                            <p class="mb-2">Rad etilgan namuna uchun quyidagini tekshiring. Bu sahifa yangi backend tekshiruvini qo'shmaydi.</p>
+                            <h3 id="qualityGuidance" class="h6">Quality Check</h3>
+                            <p class="mb-2">Check the following for rejected samples. This page does not add a new backend check.</p>
                             <ul class="mb-0">
-                                <li><strong>Xiralik:</strong> linzani arting, yorug'likni oshiring va qayta oling.</li>
-                                <li><strong>Yuz hajmi:</strong> yuz kadr markazida va yetarlicha katta bo'lsin.</li>
-                                <li><strong>Pozitsiya:</strong> ko'rsatmaga mos sekin buriling, yuzni berkitmang.</li>
-                                <li><strong>Alignment bahosi:</strong> natija past bo'lsa, to'g'ridan-to'g'ri qarab yangi namuna oling.</li>
-                                <li><strong>Dublikat xavfi:</strong> boshqa xodimga o'xshashlik haqida xabar chiqsa, profilni tekshiring.</li>
+                                <li><strong>Blur:</strong> wipe lens, increase lighting and retake.</li>
+                                <li><strong>Face size:</strong> face should be centered and large enough.</li>
+                                <li><strong>Pose:</strong> turn slowly following instructions, do not cover face.</li>
+                                <li><strong>Alignment score:</strong> if low, look straight ahead and capture again.</li>
+                                <li><strong>Duplicate risk:</strong> if similarity with another employee is reported, check the profile.</li>
                             </ul>
                         </div>
                     </div>
@@ -208,11 +208,11 @@
                         </div>
                     </div>
                     <p class="text-muted small mb-0">
-                        <strong>Ko'rsatmalar:</strong><br>
-                        • Yuzingiz kameraga to'g'ri qarab turing<br>
-                        • Yaxshi yorug'likda bo'ling<br>
-                        • Yuzingiz kadr markazida bo'lsin<br>
-                        • Boshni biroz harakatlantiring va ifodani o'zgartiring
+                        <strong>Instructions:</strong><br>
+                        • Keep your face straight to the camera<br>
+                        • Be in good lighting<br>
+                        • Face should be in the center of the frame<br>
+                        • Move head slightly and change expressions
                     </p>
                 </div>
                 <div id="angleInstruction" class="alert alert-secondary text-start d-none">
@@ -223,13 +223,13 @@
                     00:00
                 </div>
                 <div id="buttonGroup">
-                    <button class="btn btn-primary me-2" type="button" id="startCaptureBtn">Ko'p burchakli olishni boshlash</button>
-                    <button class="btn btn-outline-secondary" type="button" id="cancelCaptureBtn" disabled>Bekor qilish</button>
+                    <button class="btn btn-primary me-2" type="button" id="startCaptureBtn">Start Multi-angle Capture</button>
+                    <button class="btn btn-outline-secondary" type="button" id="cancelCaptureBtn" disabled>Cancel</button>
                 </div>
                 <div id="captureComplete" class="mt-3 d-none">
                     <div class="alert alert-success">
-                        <i class="bi bi-check-circle"></i> <span id="captureCount">0</span> ta namuna olindi.
-                        Embedding natijasi saqlash jarayonida tekshiriladi.
+                        <i class="bi bi-check-circle"></i> <span id="captureCount">0</span> samples captured.
+                        Embedding result will be checked during saving.
                     </div>
                 </div>
             </div>
@@ -336,7 +336,7 @@
             const imageUrl = URL.createObjectURL(file);
             uploadPreviewUrls.push(imageUrl);
             image.src = imageUrl;
-            image.alt = `${file.name} rasmi`;
+            image.alt = `${file.name} image`;
 
             const details = document.createElement('div');
             details.className = 'enrollment-upload__preview-details';
@@ -350,8 +350,8 @@
             const remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'btn btn-sm btn-outline-danger';
-            remove.textContent = "Olib tashlash";
-            remove.setAttribute('aria-label', `${file.name} rasmini olib tashlash`);
+            remove.textContent = "Remove";
+            remove.setAttribute('aria-label', `Remove ${file.name} image`);
             remove.addEventListener('click', () => {
                 selectedUploadFiles.splice(index, 1);
                 syncUploadedImagesInput();
@@ -369,15 +369,15 @@
         const accepted = [];
         Array.from(files).forEach(file => {
             if (!ALLOWED_UPLOAD_TYPES.has(file.type)) {
-                errors.push(`${file.name}: faqat JPEG, PNG yoki WebP qabul qilinadi.`);
+                errors.push(`${file.name}: only JPEG, PNG or WebP are accepted.`);
             } else if (file.size > MAX_UPLOAD_SIZE) {
-                errors.push(`${file.name}: fayl 4 MB limitdan katta.`);
+                errors.push(`${file.name}: file exceeds 4 MB limit.`);
             } else {
                 accepted.push(file);
             }
         });
         if (accepted.length > MAX_ENROLLMENT_IMAGES) {
-            errors.push(`Ko'pi bilan ${MAX_ENROLLMENT_IMAGES} ta rasm tanlash mumkin.`);
+            errors.push(`At most ${MAX_ENROLLMENT_IMAGES} images can be selected.`);
             accepted.length = MAX_ENROLLMENT_IMAGES;
         }
         selectedUploadFiles = accepted;
@@ -412,7 +412,7 @@
             const link = document.createElement('a');
             link.className = 'alert-link d-block mt-2';
             link.href = redirectUrl;
-            link.textContent = 'Xodim sahifasini ochish';
+            link.textContent = 'Open Employee Page';
             alertBox.appendChild(link);
         }
         enrollmentResult.appendChild(alertBox);
@@ -754,7 +754,7 @@
     function cameraDataUrlToBlob(dataUrl) {
         const separator = dataUrl.indexOf(',');
         if (separator < 0 || !dataUrl.slice(0, separator).includes(';base64')) {
-            throw new Error("Kamera rasmi buzilgan. Namunalarni qayta oling.");
+            throw new Error("Camera image is corrupted. Please retake samples.");
         }
         const binary = atob(dataUrl.slice(separator + 1));
         const bytes = new Uint8Array(binary.length);
@@ -886,21 +886,21 @@
 
         if (selectedUploadFiles.length === 0 && capturedImages.length < MIN_REQUIRED_CAPTURES) {
             e.preventDefault();
-            const message = `Kamida bitta rasm yuklang yoki kameradan ${MIN_REQUIRED_CAPTURES} ta namuna oling. Hozir: ${capturedImages.length} ta kamera namunasi.`;
+            const message = `Upload at least one image or capture ${MIN_REQUIRED_CAPTURES} samples from camera. Current: ${capturedImages.length} camera samples.`;
             showEnrollmentResult('danger', message);
             return false;
         }
 
         if (selectedUploadFiles.length + capturedImages.length > MAX_ENROLLMENT_IMAGES) {
             e.preventDefault();
-            showEnrollmentResult('danger', `Jami ko'pi bilan ${MAX_ENROLLMENT_IMAGES} ta rasm yuborish mumkin.`);
+            showEnrollmentResult('danger', `A total of at most ${MAX_ENROLLMENT_IMAGES} images can be submitted.`);
             return false;
         }
 
         e.preventDefault();
         const submitButton = registrationForm.querySelector('button[type="submit"]');
         if (submitButton) submitButton.disabled = true;
-        showEnrollmentResult('info', 'Yuz namunalari tekshirilmoqda va embeddinglar yaratilmoqda...');
+        showEnrollmentResult('info', 'Validating face samples and generating embeddings...');
 
         try {
             const formData = new FormData(registrationForm);
@@ -914,11 +914,11 @@
             }));
             const allFiles = [...selectedUploadFiles, ...cameraFiles.map(item => item.blob)];
             if (allFiles.some(file => file.size > MAX_UPLOAD_SIZE)) {
-                throw new Error('Kamera rasmi 4 MB limitdan katta. Kamerani qayta ishga tushirib, yana oling.');
+                throw new Error('Camera image exceeds 4 MB limit. Restart camera and capture again.');
             }
             const totalBytes = allFiles.reduce((total, file) => total + file.size, 0);
             if (totalBytes > MAX_ENROLLMENT_BODY_SIZE - MULTIPART_SIZE_RESERVE) {
-                throw new Error("Barcha rasmlar hajmi 10 MB limitdan katta. Ayrim rasmlarni olib tashlang.");
+                throw new Error("Total size of all images exceeds 10 MB limit. Remove some images.");
             }
             cameraFiles.forEach(item => formData.append('camera_images', item.blob, item.name));
             const response = await fetch(registrationForm.action, {
@@ -930,12 +930,12 @@
             try {
                 result = await response.json();
             } catch (_error) {
-                result = { error: 'Server tushunarli javob qaytarmadi. Qayta urinib ko\'ring.' };
+                result = { error: 'Server did not return a clear response. Please try again.' };
             }
             if (!response.ok) {
                 showEnrollmentResult(
                     'danger',
-                    result.error || 'Ro\'yxatdan o\'tkazib bo\'lmadi.',
+                    result.error || 'Registration failed.',
                     '',
                     result.rejected || []
                 );
@@ -945,17 +945,17 @@
             const warning = result.warning ? ` ${result.warning}` : '';
             showEnrollmentResult(
                 (result.rejected?.length || result.warning) ? 'warning' : 'success',
-                `Xodim saqlandi va ${result.embeddings} ta embedding galleryga qo'shildi.${warning}`,
+                `Employee saved and ${result.embeddings} embeddings added to gallery.${warning}`,
                 result.redirect_url,
                 result.rejected || []
             );
-            statusBadge.textContent = 'Embedding saqlandi';
+            statusBadge.textContent = 'Embeddings saved';
             statusBadge.className = 'status-in';
         } catch (error) {
             console.error('Enrollment submission failed:', error);
             showEnrollmentResult(
                 'danger',
-                error.message || 'Server bilan bog\'lanib bo\'lmadi. Internet ulanishini tekshirib, qayta yuboring.'
+                error.message || 'Could not connect to the server. Check your internet connection and submit again.'
             );
         } finally {
             if (submitButton) submitButton.disabled = false;

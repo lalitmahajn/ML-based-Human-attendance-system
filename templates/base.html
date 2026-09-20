@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="uz" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}AIRI{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="{{ PREFIX }}/static/css/main.css?v={{ STATIC_VERSION|default("1.0") }}" rel="stylesheet">
-    <link rel="icon" href="{{ PREFIX }}/static/favicon.ico?v={{ STATIC_VERSION|default("1.0") }}" sizes="any">
+    <link href="{{ PREFIX }}/static/css/main.css?v={{ STATIC_VERSION|default("3.1.0") }}" rel="stylesheet">
+    <link rel="icon" href="{{ PREFIX }}/static/favicon.ico?v={{ STATIC_VERSION|default("3.1.0") }}" sizes="any">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="app-shell" data-current-view="{{ current_view }}">
@@ -16,49 +16,49 @@
     <div class="container-fluid d-flex align-items-center justify-content-center position-relative">
         <div class="test-mode-banner__notice">
             <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
-            <span><strong>TEST MODE:</strong> Bu loyiha test rejimida ishlamoqda</span>
+            <span><strong>TEST MODE:</strong> This project is running in test mode</span>
         </div>
-        <button class="btn-close" type="button" data-airi-dismiss="#testModeBanner" aria-label="Yopish"></button>
+        <button class="btn-close" type="button" data-airi-dismiss="#testModeBanner" aria-label="Close"></button>
     </div>
 </div>
 {% endif %}
 
-<nav class="navbar navbar-expand-lg app-nav" aria-label="Asosiy navigatsiya">
+<nav class="navbar navbar-expand-lg app-nav" aria-label="Main Navigation">
     <div class="container-fluid app-nav__container">
-        <a class="navbar-brand app-brand" href="{{ url('dashboard:home') }}" aria-label="AIRI bosh sahifasi">
+        <a class="navbar-brand app-brand" href="{{ url('dashboard:home') }}" aria-label="AIRI Homepage">
             <span class="app-brand__mark" aria-hidden="true"><i class="bi bi-person-bounding-box"></i></span>
-            <span class="app-brand__text"><strong>AIRI</strong><small>Yuzni aniqlash tizimi</small></span>
+            <span class="app-brand__text"><strong>AIRI</strong><small>Face Recognition System</small></span>
         </a>
 
         <div class="app-nav__controls">
             {% if current_user and current_user.r == 'admin' %}
-            <a class="app-nav__health" href="{{ url('recognition:live') }}"><i class="bi bi-activity" aria-hidden="true"></i><span>Pipeline holati</span></a>
+            <a class="app-nav__health" href="{{ url('recognition:live') }}"><i class="bi bi-activity" aria-hidden="true"></i><span>Pipeline Status</span></a>
             {% endif %}
-            <button id="themeToggle" class="btn app-nav__theme-toggle" type="button" aria-pressed="false" aria-label="Yorug' mavzu">
-                <i class="bi bi-sun" aria-hidden="true"></i><span id="themeToggleLabel">Yorug' mavzu</span>
+            <button id="themeToggle" class="btn app-nav__theme-toggle" type="button" aria-pressed="false" aria-label="Light Theme">
+                <i class="bi bi-sun" aria-hidden="true"></i><span id="themeToggleLabel">Light Theme</span>
             </button>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#airiPrimaryNavigation"
-                    aria-controls="airiPrimaryNavigation" aria-expanded="false" aria-label="Navigatsiyani ochish">
+                    aria-controls="airiPrimaryNavigation" aria-expanded="false" aria-label="Open Navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
         </div>
 
         <div class="collapse navbar-collapse app-nav__collapse" id="airiPrimaryNavigation">
             <ul class="navbar-nav app-nav__links">
-                <li class="nav-item"><a class="nav-link {% if current_view == 'dashboard:home' %}active{% endif %}" href="{{ url('dashboard:home') }}"><i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Boshqaruv</span></a></li>
-                <li class="nav-item"><a class="nav-link {% if current_view == 'employees:list' %}active{% endif %}" href="{{ url('employees:list') }}"><i class="bi bi-people" aria-hidden="true"></i><span>Xodimlar</span></a></li>
-                <li class="nav-item"><a class="nav-link {% if current_view == 'attendance:list' %}active{% endif %}" href="{{ url('attendance:list') }}"><i class="bi bi-calendar2-check" aria-hidden="true"></i><span>Davomat</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'dashboard:home' %}active{% endif %}" href="{{ url('dashboard:home') }}"><i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'employees:list' %}active{% endif %}" href="{{ url('employees:list') }}"><i class="bi bi-people" aria-hidden="true"></i><span>Employees</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'attendance:list' %}active{% endif %}" href="{{ url('attendance:list') }}"><i class="bi bi-calendar2-check" aria-hidden="true"></i><span>Attendance</span></a></li>
                 {% if current_user and current_user.r == 'admin' %}
-                <li class="nav-item"><a class="nav-link {% if current_view == 'recognition:live' %}active{% endif %}" href="{{ url('recognition:live') }}"><i class="bi bi-broadcast-pin" aria-hidden="true"></i><span>Jonli kuzatuv</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'recognition:live' %}active{% endif %}" href="{{ url('recognition:live') }}"><i class="bi bi-broadcast-pin" aria-hidden="true"></i><span>Live View</span></a></li>
                 {% endif %}
                 {% if current_user and current_user.r == 'admin' %}
-                <li class="nav-item"><a class="nav-link {% if current_view == 'employees:register' %}active{% endif %}" href="{{ url('employees:register') }}"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Ro'yxatdan o'tkazish</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'employees:register' %}active{% endif %}" href="{{ url('employees:register') }}"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Enrollment</span></a></li>
                 {% endif %}
-                <li class="nav-item"><a class="nav-link {% if current_view == 'attendance:unknown' %}active{% endif %}" href="{{ url('attendance:unknown') }}"><i class="bi bi-person-x" aria-hidden="true"></i><span>Noma'lumlar</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'attendance:unknown' %}active{% endif %}" href="{{ url('attendance:unknown') }}"><i class="bi bi-person-x" aria-hidden="true"></i><span>Unknowns</span></a></li>
                 {% if current_user and current_user.r == 'admin' %}
-                <li class="nav-item"><a class="nav-link {% if current_view == 'camera:settings' %}active{% endif %}" href="{{ url('camera:settings') }}"><i class="bi bi-camera-video" aria-hidden="true"></i><span>Kameralar</span></a></li>
-                <li class="nav-item"><a class="nav-link {% if current_view == 'gallery:review' %}active{% endif %}" href="{{ PREFIX }}/gallery/review"><i class="bi bi-images" aria-hidden="true"></i><span>Galereya</span></a></li>
-                <li class="nav-item"><a class="nav-link {% if current_view == 'auth:users' %}active{% endif %}" href="{{ PREFIX }}/users"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Foydalanuvchilar</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'camera:settings' %}active{% endif %}" href="{{ url('camera:settings') }}"><i class="bi bi-camera-video" aria-hidden="true"></i><span>Cameras</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'gallery:review' %}active{% endif %}" href="{{ PREFIX }}/gallery/review"><i class="bi bi-images" aria-hidden="true"></i><span>Gallery</span></a></li>
+                <li class="nav-item"><a class="nav-link {% if current_view == 'auth:users' %}active{% endif %}" href="{{ PREFIX }}/users"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>System Users</span></a></li>
                 {% endif %}
             </ul>
             {% if current_user %}
@@ -68,11 +68,11 @@
                     <span>{{ current_user.u }}{% if current_user.r == 'admin' %} <span class="badge text-bg-secondary">admin</span>{% elif current_user.r == 'operator' %} <span class="badge text-bg-info">operator</span>{% endif %}</span>
                 </span>
                 <form method="post" action="{{ PREFIX }}/logout" class="m-0">
-                    <button class="btn app-nav__login" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Chiqish</span></button>
+                    <button class="btn app-nav__login" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Logout</span></button>
                 </form>
             </div>
             {% else %}
-            <a class="btn app-nav__login" href="{{ PREFIX }}/login"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i><span>Kirish</span></a>
+            <a class="btn app-nav__login" href="{{ PREFIX }}/login"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i><span>Login</span></a>
             {% endif %}
         </div>
     </div>
@@ -90,14 +90,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div>
-                    <h2 class="modal-title fs-5" id="evidenceModalTitle">Dalil</h2>
+                    <h2 class="modal-title fs-5" id="evidenceModalTitle">Evidence</h2>
                     <p class="evidence-modal__subtitle mb-0" id="evidenceModalSubtitle"></p>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
                 <img id="evidenceModalImage" class="img-fluid rounded" src="" alt="" hidden>
-                <p class="evidence-modal__empty mb-0" id="evidenceModalEmpty" hidden>Tasvir mavjud emas.</p>
+                <p class="evidence-modal__empty mb-0" id="evidenceModalEmpty" hidden>No image available.</p>
             </div>
         </div>
     </div>
@@ -105,7 +105,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer crossorigin="anonymous"></script>
-<script src="{{ PREFIX }}/static/js/main.js?v={{ STATIC_VERSION|default("1.0") }}" defer></script>
+<script src="{{ PREFIX }}/static/js/main.js?v={{ STATIC_VERSION|default("3.1.0") }}" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

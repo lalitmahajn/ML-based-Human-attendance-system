@@ -425,6 +425,8 @@ class ReplaySource:
                 self.clip = path.name
                 self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                 self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                clip_fps = cap.get(cv2.CAP_PROP_FPS)
+                period = 1.0 / clip_fps if (clip_fps and clip_fps > 0) else (1.0 / self.target_fps)
                 next_due = time.time()
                 try:
                     while not self._stop.is_set():

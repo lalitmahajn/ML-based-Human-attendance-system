@@ -66,7 +66,7 @@ function airiHttpUrl(path) {
 
     function formatConfidence(value) {
         const score = Number(value);
-        if (!Number.isFinite(score)) return 'Mavjud emas';
+        if (!Number.isFinite(score)) return 'Not Available';
         return `${(score <= 1 ? score * 100 : score).toFixed(1)}%`;
     }
 
@@ -89,7 +89,7 @@ function airiHttpUrl(path) {
                 ? 'OUT'
                 : data.role === 'IN' || data.role === 'OUT' ? data.role : '—';
         return {
-            name: typeof data.name === 'string' ? data.name : "Noma'lum xodim",
+            name: typeof data.name === 'string' ? data.name : "Unknown Employee",
             department: typeof data.department === 'string' ? data.department : '',
             camera: typeof data.camera === 'string' ? data.camera : '',
             action,
@@ -104,7 +104,7 @@ function airiHttpUrl(path) {
         const safeSource = safeMediaSource(source);
         if (!safeSource) {
             const placeholder = createElement('div', 'live-evidence-placeholder');
-            placeholder.setAttribute('aria-label', 'Dalil mavjud emas');
+            placeholder.setAttribute('aria-label', 'No evidence available');
             const icon = createElement('i', `bi ${fallbackIcon}`);
             icon.setAttribute('aria-hidden', 'true');
             placeholder.append(icon);
@@ -116,7 +116,7 @@ function airiHttpUrl(path) {
         button.type = 'button';
         button.dataset.airiEvidence = '';
         button.dataset.evidenceSrc = safeSource;
-        button.dataset.evidenceTitle = title || 'Dalil';
+        button.dataset.evidenceTitle = title || 'Evidence';
         button.dataset.evidenceSubtitle = subtitle || '';
         const image = createElement('img');
         image.src = safeSource;
@@ -136,25 +136,25 @@ function airiHttpUrl(path) {
             const action = entry.action || entry.transition || '—';
             const subtitle = [entry.camera, action, entry.time].filter(Boolean).join(' · ');
             appendEvidence(
-                card, entry.snapshot, entry.name || 'Tanish', subtitle,
-                `${entry.name || 'Tanish'} uchun quality-best dalil`, 'bi-person-bounding-box',
+                card, entry.snapshot, entry.name || 'Recognition', subtitle,
+                `Best-quality evidence for ${entry.name || 'recognition'}`, 'bi-person-bounding-box',
             );
 
             const body = createElement('div', 'live-event-card__body');
             const heading = createElement('div', 'd-flex justify-content-between gap-2');
             const identity = createElement('div');
             identity.append(
-                createElement('strong', '', entry.name || "Noma'lum xodim"),
-                createElement('small', '', entry.department || "Bo'lim berilmagan"),
+                createElement('strong', '', entry.name || "Unknown Employee"),
+                createElement('small', '', entry.department || "No department assigned"),
             );
             const badgeClass = action === 'IN' ? 'status-chip status-chip--success' : 'status-chip status-chip--warning';
             heading.append(identity, createElement('span', badgeClass, action));
 
             const details = createElement('dl');
             [
-                ['Ishonch', formatConfidence(entry.score)],
-                ['Kamera', entry.camera || '—'],
-                ['Vaqt', entry.time || '—'],
+                ['Confidence', formatConfidence(entry.score)],
+                ['Camera', entry.camera || '—'],
+                ['Time', entry.time || '—'],
             ].forEach(([label, value]) => {
                 const item = createElement('div');
                 item.append(createElement('dt', '', label), createElement('dd', '', value));
@@ -170,7 +170,7 @@ function airiHttpUrl(path) {
             empty.dataset.feedEmpty = '';
             const icon = createElement('i', 'bi bi-person-check');
             icon.setAttribute('aria-hidden', 'true');
-            empty.append(icon, createElement('p', 'mb-0', "Hozircha tanishlar yo'q."));
+            empty.append(icon, createElement('p', 'mb-0', "No recognitions yet."));
             fragment.append(empty);
         }
         container.replaceChildren(fragment);
@@ -185,18 +185,18 @@ function airiHttpUrl(path) {
 
         recent.forEach((entry) => {
             const card = createElement('article', 'live-unknown-card');
-            const title = `Noma'lum #${entry.id ?? '?'}`;
-            const camera = entry.camera || (entry.camera_id ? `Kamera #${entry.camera_id}` : '—');
+            const title = `Unknown #${entry.id ?? '?'}`;
+            const camera = entry.camera || (entry.camera_id ? `Camera #${entry.camera_id}` : '—');
             const lastSeen = entry.last_seen_label || formatTime(entry.last_seen || entry.timestamp);
             appendEvidence(
                 card, entry.snapshot, title, `${camera} · ${lastSeen}`,
-                "Noma'lum shaxs uchun quality-best dalil", 'bi-person-exclamation',
+                "Best-quality evidence for unknown person", 'bi-person-exclamation',
             );
             const body = createElement('div');
             body.append(
                 createElement('strong', '', title),
                 createElement('small', '', `${camera} · ${lastSeen}`),
-                createElement('span', '', `${entry.attempt_count ?? 0} kadr`),
+                createElement('span', '', `${entry.attempt_count ?? 0} frames`),
             );
             card.append(body);
             fragment.append(card);
@@ -207,7 +207,7 @@ function airiHttpUrl(path) {
             empty.dataset.feedEmpty = '';
             const icon = createElement('i', 'bi bi-shield-check');
             icon.setAttribute('aria-hidden', 'true');
-            empty.append(icon, createElement('p', 'mb-0', "Noma'lum faollik qayd etilmadi."));
+            empty.append(icon, createElement('p', 'mb-0', "No unknown activity recorded."));
             fragment.append(empty);
         }
         container.replaceChildren(fragment);
@@ -237,10 +237,10 @@ function airiHttpUrl(path) {
                 stream.socket = socket;
 
                 socket.addEventListener('open', () => {
-                    this.updateState(stream, 'unavailable', 'Kadr kutilmoqda');
+                    this.updateState(stream, 'unavailable', 'Waiting for frame');
                 });
                 socket.addEventListener('message', (event) => this.decodeFrame(stream, event.data));
-                socket.addEventListener('error', () => this.updateState(stream, 'unavailable', 'Mavjud emas'));
+                socket.addEventListener('error', () => this.updateState(stream, 'unavailable', 'Unavailable'));
                 socket.addEventListener('close', () => {
                     if (stream.closed) return;
                     // Closed before a single frame arrived. That is not a
@@ -249,15 +249,15 @@ function airiHttpUrl(path) {
                     // installed serves the handshake as ordinary HTTP (which
                     // the login middleware then answers with a 303), and a
                     // reverse proxy that does not forward Upgrade behaves the
-                    // same way. Reconnecting forever just repaints "Mavjud
-                    // emas" every three seconds, which is exactly what the
+                    // same way. Reconnecting forever just repaints "Unavailable"
+                    // every three seconds, which is exactly what the
                     // live page did on aiscan.airi.uz. MJPEG needs neither
                     // the library nor the proxy's cooperation.
                     if (stream.framesSeen === 0) {
                         this.useMjpeg(stream);
                         return;
                     }
-                    this.updateState(stream, 'unavailable', 'Mavjud emas');
+                    this.updateState(stream, 'unavailable', 'Unavailable');
                     if (stream.reconnectTimer === null) {
                         stream.reconnectTimer = window.setTimeout(() => {
                             stream.reconnectTimer = null;
@@ -282,13 +282,13 @@ function airiHttpUrl(path) {
                 stream.card.querySelector('[data-stream-placeholder]')?.setAttribute('hidden', '');
                 const lastFrame = stream.card.querySelector('[data-camera-metric="last-frame"]');
                 if (lastFrame) lastFrame.textContent = new Date().toLocaleTimeString();
-                this.updateState(stream, 'online', 'Onlayn');
+                this.updateState(stream, 'online', 'Online');
             });
             // A camera that is not running 404s here exactly as the socket
             // closed 4004, so say so rather than showing a broken image.
             image.addEventListener('error', () => {
                 stream.card.querySelector('[data-stream-placeholder]')?.removeAttribute('hidden');
-                this.updateState(stream, 'offline', 'Mavjud emas');
+                this.updateState(stream, 'offline', 'Unavailable');
             });
             stream.canvas.setAttribute('hidden', '');
             stream.canvas.after(image);
@@ -309,7 +309,7 @@ function airiHttpUrl(path) {
                     // source that has gone quiet rather than re-encoding its
                     // last image at 10 fps, and the last frame drawn stays
                     // on the canvas under this label.
-                    this.updateState(stream, 'unavailable', 'Oqim eskirgan');
+                    this.updateState(stream, 'unavailable', 'Stream stale');
                     return;
                 }
                 if (!data.data) return;
@@ -329,15 +329,15 @@ function airiHttpUrl(path) {
                     if (fps && data.fps !== undefined) {
                         const frameFps = Number(data.fps);
                         fps.textContent = Number.isFinite(frameFps) && frameFps > 0
-                            ? String(data.fps) : 'Mavjud emas';
+                            ? String(data.fps) : 'Not Available';
                     }
                     if (lastFrame) lastFrame.textContent = new Date().toLocaleTimeString();
                     if (latency && data.delay_ms !== undefined) latency.textContent = `${data.delay_ms} ms`;
-                    this.updateState(stream, 'online', 'Onlayn');
+                    this.updateState(stream, 'online', 'Online');
                 }, { once: true });
                 image.src = `data:image/jpeg;base64,${data.data}`;
             } catch (error) {
-                console.warn(`Kamera ${stream.streamEndpoint} kadri o'qilmadi`, error);
+                console.warn(`Failed to decode frame from camera ${stream.streamEndpoint}`, error);
             }
         }
 
@@ -435,7 +435,7 @@ function airiHttpUrl(path) {
                 });
                 if (response.ok) hydrateFromApi(await response.json());
             } catch (error) {
-                console.warn('Jonli qaydlarni yangilab bo\'lmadi', error);
+                console.warn('Could not refresh live logs', error);
             }
         };
 
@@ -450,13 +450,13 @@ function airiHttpUrl(path) {
                 const canvas = button.closest('[data-camera-id]')?.querySelector('[data-stream-canvas]');
                 if (!canvas) return;
                 if (document.fullscreenElement) document.exitFullscreen();
-                else canvas.requestFullscreen().catch((error) => console.warn("To'liq ekran ochilmadi", error));
+                else canvas.requestFullscreen().catch((error) => console.warn("Could not open full screen", error));
             }
         });
 
         document.addEventListener('fullscreenchange', () => {
             document.querySelectorAll('[data-action="fullscreen"] span').forEach((label) => {
-                label.textContent = document.fullscreenElement ? 'Yopish' : "To'liq ekran";
+                label.textContent = document.fullscreenElement ? 'Exit Fullscreen' : "Full Screen";
             });
         });
 
@@ -472,11 +472,11 @@ function airiHttpUrl(path) {
                         renderRecentEvents(eventFeed, recentEvents);
                     }
                 } catch (error) {
-                    console.warn('WebSocket qaydi yaroqsiz', error);
+                    console.warn('WebSocket record invalid', error);
                 }
             });
         } catch (error) {
-            console.warn('WebSocket mavjud emas', error);
+            console.warn('WebSocket unavailable', error);
         }
 
         refreshLogs();

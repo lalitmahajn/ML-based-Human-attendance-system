@@ -157,13 +157,22 @@ app = FastAPI(title="EmAtSy v3", version="3.0.0", lifespan=lifespan)
 # /faceid/... - mounts, routes and all.
 PREFIX = settings.url_prefix.rstrip("/")
 
+class DevStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+
 settings.media_dir.mkdir(parents=True, exist_ok=True)
 app.mount(f"{PREFIX}/media", StaticFiles(directory=str(settings.media_dir)), name="media")
 
 # The original UI's stylesheet and scripts.
 _static = settings.root / "static"
 if _static.is_dir():
-    app.mount(f"{PREFIX}/static", StaticFiles(directory=str(_static)), name="static")
+    app.mount(f"{PREFIX}/static", DevStaticFiles(directory=str(_static)), name="static")
 
 
 

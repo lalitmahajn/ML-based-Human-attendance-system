@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Kamera diagnostikasi{% endblock %}
+{% block title %}Camera Diagnostics{% endblock %}
 {% block content %}
 <section class="page-header camera-diagnostics__header">
-    <p class="eyebrow mb-2">O'qish rejimi</p>
-    <h1>Kamera diagnostikasi</h1>
-    <p class="mb-0 text-muted">Bu sahifa faqat sozlangan va kuzatilgan holatni taqqoslaydi; kamera sozlamalarini o'zgartirmaydi.</p>
+    <p class="eyebrow mb-2">Read-only mode</p>
+    <h1>Camera Diagnostics</h1>
+    <p class="mb-0 text-muted">This page only compares configured and observed status; it does not change camera settings.</p>
 </section>
 
-<aside class="airi-card camera-diagnostics__warning" aria-label="NVR drift ogohlantirishi">
+<aside class="airi-card camera-diagnostics__warning" aria-label="NVR drift warning">
     <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
     <div>
-        <h2 class="h5">Drift ogohlantirishi</h2>
-        <p class="mb-0"><strong>NVR encoder sozlamalariga egalik qiladi.</strong> Sifat, bitrate va GOP NVR tomonidan qayta yozilishi mumkin; ularni AIRI'da emas, NVRning o'zida o'zgartiring.</p>
+        <h2 class="h5">Drift Warning</h2>
+        <p class="mb-0"><strong>NVR owns encoder settings.</strong> Quality, bitrate, and GOP can be overwritten by NVR; change them in the NVR itself, not in AIRI.</p>
     </div>
 </aside>
 
@@ -21,42 +21,42 @@
     <article class="airi-card camera-diagnostics__card" data-camera-state="{{ camera.observed.state }}">
         <header class="camera-diagnostics__card-header">
             <div>
-                <p class="eyebrow mb-1">Kamera #{{ camera.configured.id }}</p>
+                <p class="eyebrow mb-1">Camera #{{ camera.configured.id }}</p>
                 <h2 class="h5 mb-0">{{ camera.configured.name }}</h2>
             </div>
             <span class="status-chip {% if camera.observed.state == 'online' %}status-chip--success{% else %}status-chip--danger{% endif %}">{{ camera.observed.state_label }}</span>
         </header>
         <div class="camera-diagnostics__groups">
             <section class="camera-diagnostics__group">
-                <h3>Sozlangan</h3>
+                <h3>Configured</h3>
                 <dl>
-                    <div><dt>ID / rol</dt><dd>#{{ camera.configured.id }} · {{ camera.configured.role }}</dd></div>
-                    <div><dt>IP manzil</dt><dd>{{ camera.configured.ip or "Mavjud emas" }}</dd></div>
-                    <div><dt>Oqim manzili</dt><dd class="camera-diagnostics__url">{{ camera.configured.rtsp_url or "Mavjud emas" }}</dd></div>
-                    <div><dt>Konfiguratsiya</dt><dd>{{ "Faol" if camera.configured.enabled else "O'chirilgan" }}</dd></div>
+                    <div><dt>ID / role</dt><dd>#{{ camera.configured.id }} · {{ camera.configured.role }}</dd></div>
+                    <div><dt>IP address</dt><dd>{{ camera.configured.ip or "Not Available" }}</dd></div>
+                    <div><dt>Stream URL</dt><dd class="camera-diagnostics__url">{{ camera.configured.rtsp_url or "Not Available" }}</dd></div>
+                    <div><dt>Configuration</dt><dd>{{ "Active" if camera.configured.enabled else "Disabled" }}</dd></div>
                 </dl>
             </section>
             <section class="camera-diagnostics__group">
-                <h3>Kuzatilgan</h3>
+                <h3>Observed</h3>
                 <dl>
-                    <div><dt>Ulanish</dt><dd>{{ camera.observed.detail }}</dd></div>
-                    <div><dt>Ruxsat</dt><dd>{{ camera.observed.resolution or "Mavjud emas" }}</dd></div>
-                    <div><dt>Kamera FPS</dt><dd>{{ camera.observed.fps if camera.observed.fps is not none else "Mavjud emas" }}</dd></div>
+                    <div><dt>Connection</dt><dd>{{ camera.observed.detail }}</dd></div>
+                    <div><dt>Resolution</dt><dd>{{ camera.observed.resolution or "Not Available" }}</dd></div>
+                    <div><dt>Camera FPS</dt><dd>{{ camera.observed.fps if camera.observed.fps is not none else "Not Available" }}</dd></div>
                 </dl>
             </section>
             <section class="camera-diagnostics__group">
                 <h3>Pipeline</h3>
                 <dl>
-                    <div><dt>Algoritm FPS</dt><dd>{{ camera.pipeline.fps if camera.pipeline.fps is not none else "Mavjud emas" }}</dd></div>
-                    <div><dt>Kechikish</dt><dd>{{ camera.pipeline.latency_ms if camera.pipeline.latency_ms is not none else "Mavjud emas" }}{% if camera.pipeline.latency_ms is not none %} ms{% endif %}</dd></div>
-                    <div><dt>Xatolar</dt><dd>{{ camera.pipeline.errors if camera.pipeline.errors is not none else "Mavjud emas" }}</dd></div>
-                    <div><dt>Oxirgi xato</dt><dd>{{ camera.pipeline.last_error or "Mavjud emas" }}</dd></div>
+                    <div><dt>Algorithm FPS</dt><dd>{{ camera.pipeline.fps if camera.pipeline.fps is not none else "Not Available" }}</dd></div>
+                    <div><dt>Latency</dt><dd>{{ camera.pipeline.latency_ms if camera.pipeline.latency_ms is not none else "Not Available" }}{% if camera.pipeline.latency_ms is not none %} ms{% endif %}</dd></div>
+                    <div><dt>Errors</dt><dd>{{ camera.pipeline.errors if camera.pipeline.errors is not none else "Not Available" }}</dd></div>
+                    <div><dt>Last Error</dt><dd>{{ camera.pipeline.last_error or "Not Available" }}</dd></div>
                 </dl>
             </section>
             <section class="camera-diagnostics__group camera-diagnostics__group--drift"
                 data-drift-state="{{ camera.drift.state }}" data-drift-comparison="{{ camera.drift.comparison }}">
                 <h3>Drift</h3>
-                <p class="mb-0"><strong>{{ camera.drift.label }}</strong>. {{ camera.drift.detail }}; AIRI bu qiymatlarni saqlamaydi yoki qo'llamaydi.</p>
+                <p class="mb-0"><strong>{{ camera.drift.label }}</strong>. {{ camera.drift.detail }}; AIRI does not store or apply these values.</p>
             </section>
         </div>
     </article>
@@ -65,8 +65,8 @@
 {% else %}
 <section class="airi-card camera-diagnostics__empty">
     <i class="bi bi-camera-video-off" aria-hidden="true"></i>
-    <h2 class="h5">Sozlangan kameralar mavjud emas</h2>
-    <p class="text-muted mb-0">Kamera qo'shilgach, uning kuzatilgan oqim va pipeline holati shu yerda paydo bo'ladi.</p>
+    <h2 class="h5">No configured cameras found</h2>
+    <p class="text-muted mb-0">Once a camera is added, its observed stream and pipeline status will appear here.</p>
 </section>
 {% endif %}
 {% endblock %}

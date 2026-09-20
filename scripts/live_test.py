@@ -29,10 +29,21 @@ def main():
         print("=" * 74)
         print(f"camera {cid}  {name}  role={role}")
         print("=" * 74)
-        src = RtspSource(url, name=name, transport=settings.rtsp_transport,
-                         queue_size=settings.frame_queue_size,
-                         stale_after_s=settings.stale_after_s).start()
-        pipe = CameraPipeline(name, gallery)
+        if settings.replay_dir:
+            from app.core.stream import ReplaySource
+            src = ReplaySource(Path(settings.replay_dir) / name, name=name,
+                               fps=settings.track_frame_rate,
+                               queue_size=settings.frame_queue_size,
+                               stale_after_s=settings.stale_after_s).start()
+        else:
+            src = RtspSource(url, name=name, transport=settings.rtsp_transport,
+                             queue_size=settings.frame_queue_size,
+                             stale_after_s=settings.stale_after_s).start()
+        from app.core.direction import config_from_camera
+        with session_scope() as s:
+            cam_obj = s.get(Camera, cid)
+            dir_cfg = config_from_camera(cam_obj) if cam_obj else None
+        pipe = CameraPipeline(name, gallery, direction_cfg=dir_cfg)
 
         t_wait = time.time()
         while not src.connected and time.time() - t_wait < 20:
