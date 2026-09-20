@@ -1,83 +1,149 @@
-# EmAtSy — Face Recognition Attendance
+# ML-Based Human Attendance System
 
-Two RTSP cameras at a corridor: one means **arrived**, one means **left**.
-Faces are detected, tracked, aligned and identified on the GPU; a state machine
-turns role-tagged sightings into check-in / check-out times.
+A high-throughput, edge-accelerated automated attendance system using RTSP IP video cameras. Faces are detected, tracked across frames, aligned, and identified in real time on an NVIDIA GPU; a trajectory state machine turns tripwire crossings into precise check-in and check-out records.
 
-```
-YOLOv8n-face  →  ByteTrack  →  CVLFace DFA  →  AdaFace IR-101  →  state machine
-  detection      tracking       alignment       recognition        attendance
-```
-
-| | |
-|---|---|
-| Enrolled | 54 people, 268 embeddings |
-| Gallery separation | d′ = 11.33, rank-1 100.00%, 0 false accepts in 35,775 pairs |
-| Throughput | 20–43 fps/camera sustained (6 fps needed) |
-| Cameras | 2 × Hikvision DS-2CD2083G2-I, 4K H.264 @12fps |
-
-## Quick start
-
-```bash
-python scripts/enroll.py          # build the gallery from face_id_users/
-python scripts/seed_cameras.py    # register cameras + their IN/OUT roles
-python scripts/run.py             # workers + web UI on :8000
+```text
+Camera Stream (RTSP / Video)
+   │
+   ▼
+YOLOv8-face (ONNX CUDA)  ──►  ByteTrack (Kalman Filter)  ──►  DFA Aligner (112×112 Canonical Warp)
+   [~20 ms / frame]                [~0.5 ms / frame]                  [~7 ms / face]
+                                                                            │
+                                                                            ▼
+State Machine & Attendance  ◄──  Virtual Tripwire  ◄──  AdaFace IR-50 (512-D Embedding)
+   [Check-In / Check-Out]           [ENTER / EXIT]                    [~14 ms / face]
 ```
 
-Open <http://localhost:8000>. The UI is the project's original Bootstrap
-interface, served from `templates/` and fed by the v3 recognition core.
+---
 
-| page | what |
-|---|---|
-| `/` | dashboard — KPIs, today's attendance, real-time log |
-| `/recognition` | **Live Recognition Console** — both camera feeds over WebSocket, live stats, recognition feed |
-| `/employees` | roster, search, per-person detail and history |
-| `/attendance` | daily attendance, weekly chart, CSV export |
-| `/attendance/unknown` | unrecognized sightings |
-| `/cameras` | camera config and live stream health |
+## Performance & Biometrics (NVIDIA RTX 5050 Laptop GPU)
 
-## Docs
+| Metric | Measured Value | Standard / Target |
+|---|---|---|
+| **Pipeline Latency ($p_{50}$)** | **41.2 ms / frame** | $< 50 \text{ ms}$ (Real-time 20 FPS budget) |
+| **Sustained Throughput** | **21.4 FPS continuous** | Easily keeps up with 15–20 FPS RTSP cameras |
+| **Gallery Separation ($d'$)** | **11.9965** | $> 5.0$ is considered exceptional biometrics |
+| **Rank-1 Identification** | **100.00%** | Top-1 leave-one-out recognition |
+| **Weakest Genuine Match** | **0.6469** | Safe margin above false-reject floor |
+| **Highest Impostor Match** | **0.2430** | Zero false accepts across enrolled gallery |
+| **Active VRAM Footprint** | **~650 MB** | Lightweight; leaves over 5 GB free VRAM |
 
-| file | what |
-|---|---|
-| [docs/ALGORITHM.md](docs/ALGORITHM.md) | **start here** - how the algorithm works, end to end |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | shipping to another machine: licence, encrypted models, bundle |
-| [docs/DEPLOY_AISCAN.md](docs/DEPLOY_AISCAN.md) | the AIRI GPU-server deployment: hosts, ports, proxy, traps |
-| [docs/PLAN.md](docs/PLAN.md) | the implementation plan and the decisions behind it |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | how the pipeline works, module by module |
-| [docs/OPERATIONS.md](docs/OPERATIONS.md) | running, deploying, tuning, troubleshooting |
-| [docs/BENCHMARKS.md](docs/BENCHMARKS.md) | every measurement, and how to reproduce it |
-| [docs/AUDIT.md](docs/AUDIT.md) | review of the removed `fast_api/` implementation, kept for its rationale |
-| [docs/UI.md](docs/UI.md) | how the original templates are served from the v3 core |
-| [docs/IMAGE_QUALITY.md](docs/IMAGE_QUALITY.md) | why frames were blurry, what was measured, what was changed |
-| [docs/SCHEDULED_RUN.md](docs/SCHEDULED_RUN.md) | the 2026-08-25 07:00 capture run: what starts, what is saved, retention |
-| [docs/DIRECTION.md](docs/DIRECTION.md) | how direction of travel decides check-in vs check-out |
+---
 
-## Layout
+## Key Features
 
+* **100% GPU Acceleration via ONNX Runtime**: Face detector (`yolov8n-face.onnx`), aligner (`dfa_mobilenet_aligner.onnx`), and recognizer (`adaface_ir50_base.onnx`) run entirely on the GPU via `CUDAExecutionProvider`. Fully compatible with NVIDIA Blackwell (`sm_120`), Ada Lovelace (`sm_89`), and Ampere (`sm_86`).
+* **Multi-Frame Tracklet Consensus**: Does not rely on a single lucky frame. Associates detections across time into tracklets and requires $K$-of-$N$ agreeing recognition votes before committing an identity.
+* **Trajectory Tripwire Crossing**: Evaluates movement direction vectors ($dx/dt$, depth growth) across a virtual trigger line to distinguish true entrances/exits from casual loitering.
+* **Continuous Gallery Enrichment (`/gallery/review`)**: Human-in-the-loop review station that allows admins to approve sharp real-world corridor captures, with individualized mathematical safety thresholds per face.
+* **Full English Web Dashboard**: Fast, responsive Bootstrap UI for employee management (add, inspect, delete), live camera viewing, daily logs, and CSV exports.
+
+---
+
+## Quick Start
+
+### 1. Prerequisites
+* Python 3.11
+* NVIDIA GPU with CUDA 12+ and cuDNN 9+
+* Windows 11 / Windows Server or Linux (Ubuntu 22.04 / 24.04)
+
+### 2. Environment Setup
+```powershell
+# Clone the repository
+git clone https://github.com/lalitmahajn/ML-based-Human-attendance-system.git
+cd ML-based-Human-attendance-system
+
+# Create and activate virtual environment
+python -m venv venv
+.\venv\Scripts\Activate.ps1   # On Linux: source venv/bin/activate
+
+# Install dependencies (ensure onnxruntime-gpu is used, not cpu onnxruntime)
+pip install -r requirements.txt
+pip install onnxruntime-gpu==1.23.2
 ```
+
+### 3. Environment Variables (`.env`)
+Create a `.env` file in the project root:
+```ini
+detector_model="yolov8n-face.onnx"
+head_model=""
+recognizer_model="adaface_ir50_base.onnx"
+reid_model=""
+recognition_threshold_override=0.20
+secret_key="your_secure_random_key_here"
+```
+
+### 4. Seed Cameras & Launch Server
+```powershell
+# Register default cameras in the SQLite database
+python scripts/seed_cameras.py
+
+# Launch the FastAPI web server and camera workers
+python scripts/run.py
+```
+Open **`http://127.0.0.1:8000`** in your browser.
+* **Default Credentials**: `inomjon` / `123456`
+
+---
+
+## Web Navigation Guide
+
+| Route | Page | Purpose |
+|---|---|---|
+| `/` | **Dashboard** | Real-time transit events, present employee stats, and system KPIs. |
+| `/live` | **Live Camera Console** | Real-time WebSocket video streaming with bounding boxes and track states. |
+| `/employees` | **Employee Roster** | List, search, view attendance history, or delete employees. |
+| `/employees/add` | **Enrollment** | Register new employees using multi-angle photos or webcam captures. |
+| `/attendance` | **Attendance Logs** | Daily attendance records, transition timestamps, and CSV export. |
+| `/gallery/review` | **Gallery Enrichment** | Human-in-the-loop review to approve corridor frames and inspect lookalike pairs. |
+| `/cameras` | **Camera Config** | Manage RTSP streams, camera roles (`IN`, `OUT`, `BOTH`), and status. |
+
+---
+
+## Useful CLI Utilities
+
+* **Profile Pipeline Latency & Jitter**:
+  ```powershell
+  python bench/profile_models.py
+  ```
+* **Benchmark Live Video / Replay Stream ($N$ frames)**:
+  ```powershell
+  python scripts/live_test.py 60
+  ```
+* **Calibrate Camera Virtual Tripwire Line**:
+  ```powershell
+  python scripts/set_direction.py --camera 1 --line 0.50,0.0,0.50,1.0 --inside right --depth grow
+  ```
+* **Extract Diverse Training Frames from Portrait Video**:
+  ```powershell
+  python scripts/extract_enrollment_frames.py --video sample.mp4 --out face_id_users/1_Name/ --count 5
+  ```
+* **Reset Attendance Records (Keep Employees & Cameras)**:
+  ```powershell
+  python scripts/reset_attendance.py --apply --media
+  ```
+
+---
+
+## Architecture & Layout
+
+```text
 app/
-  config.py            every tunable, one place
-  core/                geometry, detector, aligner, recognizer,
-                       quality, tracker, gallery, stream, pipeline
-  services/            enrollment, attendance, worker
-  db/                  models, session
-  api/main.py          FastAPI app, video, JSON, CSV
-  api/pages.py         HTML routes rendering the original templates
-  api/ws.py            WebSocket camera streaming for the live console
-  web/django_compat.py Django template constructs for Jinja2
-  web/viewmodels.py    v3 schema -> template field names
-templates/             the original Bootstrap UI (unchanged)
-static/                its CSS and JS
-models/                runtime weights (139 MB) + MANIFEST.sha256 + README
-                       _archive/ holds the fp32 master, never shipped
-scripts/               enroll, seed_cameras, run, live_test, diagnose_live
-bench/                 the benchmark and validation scripts
-face_id_users/         enrolment export (55 people, biometric - not in git)
-data/                  recordings, debug captures, logs, ematsy.db (not in git)
+  ├── api/              # FastAPI routers (auth, HTML pages, WebSocket live stream)
+  ├── core/             # AI core (OnnxFaceDetector, FaceAligner, FaceRecognizer, ByteTrack)
+  ├── db/               # SQLAlchemy models and SQLite session management
+  ├── services/         # Enrollment, Attendance recording, CameraWorker pipeline
+  └── config.py         # Global configuration settings and thresholds
+bench/                  # Latency, FPS, and accuracy benchmarking scripts
+data/                   # Local databases, direction previews, and debug captures (gitignored)
+media/                  # Attendance snapshot JPEGs and employee photos (gitignored)
+models/                 # Runtime ONNX neural network weights (gitignored)
+scripts/                # Administrative CLI utilities (run, enroll, test, set_direction)
+templates/              # Responsive Jinja2 Bootstrap HTML templates (100% English)
+static/                 # Client-side JavaScript, CSS, and icons
 ```
 
-`fast_api/` (the Django-era carry-over) was removed on 2026-08-25 once the last
-importer went away: enrolment now runs natively in `app/`. Its findings live on
-in [docs/AUDIT.md](docs/AUDIT.md), and a guard test asserts the legacy employee
-router is never remounted.
+---
+
+## License & Credits
+Developed as an enterprise-grade ML attendance system. Neural models based on YOLOv8 (Ultralytics), DFA MobileNet (CVLFace), and AdaFace (IR-50 base).
