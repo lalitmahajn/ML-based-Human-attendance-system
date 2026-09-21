@@ -53,7 +53,7 @@
             <dl class="live-camera-metrics">
                 <div><dt>Resolution</dt><dd>{{ camera.resolution if camera.resolution is not none else "Not Available" }}</dd></div>
                 <div><dt>Camera FPS</dt><dd data-camera-metric="camera-fps">{{ camera.camera_fps if camera.camera_fps is not none else "Not Available" }}</dd></div>
-                <div><dt>Algorithm FPS</dt><dd>{{ camera.algorithm_fps if camera.algorithm_fps is not none else "Not Available" }}</dd></div>
+                <div><dt>Algorithm FPS</dt><dd data-camera-metric="algorithm-fps">{{ camera.algorithm_fps if camera.algorithm_fps is not none else "Not Available" }}</dd></div>
                 <div><dt>Latency</dt><dd data-camera-metric="latency">{% if camera.latency_ms is not none %}{{ camera.latency_ms|round(1) }} ms{% else %}Not Available{% endif %}</dd></div>
                 <div><dt>Last Frame</dt><dd data-camera-metric="last-frame">{{ camera.last_frame if camera.last_frame is not none else "Not Available" }}</dd></div>
             </dl>

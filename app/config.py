@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite+aiosqlite:///{ROOT / 'data' / 'ematsy.db'}"
     database_url_sync: str = f"sqlite:///{ROOT / 'data' / 'ematsy.db'}"
 
+    # Live preview WebSocket streaming FPS to web frontend
+    live_preview_fps: int = 30
+
     # ---- models ---------------------------------------------------------
     detector_kind: str = "yolo"                       # only option; YuNet removed
     # CrowdHuman YOLOv8n (person + head). Used only for tracking - see the note

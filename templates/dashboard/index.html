@@ -2,115 +2,206 @@
 {% block title %}Dashboard | AIRI{% endblock %}
 
 {% block content %}
-<section class="airi-card dashboard-welcome p-4 mb-4" aria-labelledby="dashboardWelcome">
-    <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
-        <div>
-            <p class="text-muted text-uppercase small fw-semibold mb-1">AIRI Operations Center</p>
-            <h1 class="h3 mb-1" id="dashboardWelcome">Welcome</h1>
-            <p class="mb-0 text-muted">{{ today|date("d.m.Y") }} · Today's attendance status</p>
-        </div>
-        <div class="text-md-end">
-            <strong class="d-block fs-4">{{ total_employees }} employees</strong>
-            <span class="text-muted">Attendance: {{ present_today }}/{{ total_employees }} ({{ present_ratio }}%)</span>
-        </div>
+<!-- Compact Operations Bar -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
+    <div>
+        <h1 class="h6 mb-0 fw-bold d-inline-block me-2">Operations Center</h1>
+        <span class="text-muted small">{{ today|date("d.m.Y") }} · {{ total_employees }} Employees</span>
+        <span class="badge text-bg-primary rounded-pill ms-2">{{ present_today }}/{{ total_employees }} ({{ present_ratio }}% Present)</span>
     </div>
-</section>
-
-<section class="mb-4" aria-labelledby="dailyAttendanceHeading">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h4 mb-0" id="dailyAttendanceHeading">Daily Attendance</h2>
-        <a class="btn btn-sm btn-outline-primary" href="{{ url('attendance:list') }}">Details</a>
-    </div>
-    <div class="row g-3">
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Present</span><div class="dashboard-metric__value mt-2">{{ present_today }}</div><span class="status-chip status-chip--success mt-3">Recorded today</span></article></div>
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">On Time</span><div class="dashboard-metric__value mt-2">{{ on_time_today }}</div><span class="status-chip status-chip--success mt-3">Before 09:00</span></article></div>
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Late</span><div class="dashboard-metric__value mt-2">{{ late_arrivals }}</div><span class="status-chip status-chip--warning mt-3">After 09:00</span></article></div>
-        <div class="col-6 col-xl-3"><article class="metric-card h-100"><span class="text-muted small">Absent</span><div class="dashboard-metric__value mt-2">{{ absent_today }}</div><span class="status-chip status-chip--danger mt-3">Active list</span></article></div>
-    </div>
-</section>
-
-<section class="mb-4" aria-labelledby="quickActionsHeading">
-    <h2 class="h4 mb-3" id="quickActionsHeading">Quick Actions</h2>
-    <div class="row g-3">
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:list') }}"><i class="bi bi-calendar2-check fs-4" aria-hidden="true"></i><strong>Attendance</strong><span class="text-muted small">Today's records</span></a></div>
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('employees:list') }}"><i class="bi bi-people fs-4" aria-hidden="true"></i><strong>Employees</strong><span class="text-muted small">Active list</span></a></div>
+    <div class="d-flex flex-wrap gap-1 align-items-center">
+        <a class="btn btn-sm btn-outline-primary" href="{{ url('attendance:list') }}"><i class="bi bi-calendar2-check me-1"></i>Attendance</a>
+        <a class="btn btn-sm btn-outline-primary" href="{{ url('employees:list') }}"><i class="bi bi-people me-1"></i>Employees</a>
         {% if can_admin %}
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('recognition:live') }}"><i class="bi bi-broadcast-pin fs-4" aria-hidden="true"></i><strong>Live View</strong><span class="text-muted small">Camera streams</span></a></div>
+        <a class="btn btn-sm btn-outline-primary" href="{{ url('recognition:live') }}"><i class="bi bi-broadcast-pin me-1"></i>Live View</a>
         {% else %}
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:unknown') }}"><i class="bi bi-person-x fs-4" aria-hidden="true"></i><strong>Unknowns</strong><span class="text-muted small">Review queue</span></a></div>
+        <a class="btn btn-sm btn-outline-primary" href="{{ url('attendance:unknown') }}"><i class="bi bi-person-x me-1"></i>Unknowns</a>
         {% endif %}
-        <div class="col-6 col-lg-3"><a class="airi-card d-flex flex-column gap-2 h-100 p-3 text-decoration-none" href="{{ url('attendance:export') }}?day={{ today }}"><i class="bi bi-file-earmark-arrow-down fs-4" aria-hidden="true"></i><strong>Report</strong><span class="text-muted small">CSV export</span></a></div>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url('attendance:export') }}?day={{ today }}"><i class="bi bi-download me-1"></i>CSV</a>
     </div>
-</section>
+</div>
 
-<div class="row g-4 mb-4">
-    <section class="col-12 {% if can_admin %}col-xl-7{% endif %}" aria-labelledby="recentEventsHeading">
-        <div class="airi-card h-100 p-3">
-            <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h4 mb-0" id="recentEventsHeading">Recent Identifications</h2><span class="text-muted small">Last 12</span></div>
-            <div class="vstack gap-3">
+<!-- High-Density KPI Strip -->
+<div class="row g-2 mb-2">
+    <div class="col-6 col-md-3">
+        <article class="metric-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-semibold">Present</span>
+                <span class="status-chip status-chip--success">Today</span>
+            </div>
+            <div class="dashboard-metric__value text-success">{{ present_today }}</div>
+            <span class="text-muted small">Checked in</span>
+        </article>
+    </div>
+    <div class="col-6 col-md-3">
+        <article class="metric-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-semibold">On Time</span>
+                <span class="status-chip status-chip--success">&le; 09:00</span>
+            </div>
+            <div class="dashboard-metric__value text-primary">{{ on_time_today }}</div>
+            <span class="text-muted small">Punctual arrival</span>
+        </article>
+    </div>
+    <div class="col-6 col-md-3">
+        <article class="metric-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-semibold">Late</span>
+                <span class="status-chip status-chip--warning">&gt; 09:00</span>
+            </div>
+            <div class="dashboard-metric__value text-warning">{{ late_arrivals }}</div>
+            <span class="text-muted small">Delayed arrival</span>
+        </article>
+    </div>
+    <div class="col-6 col-md-3">
+        <article class="metric-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-semibold">Absent</span>
+                <span class="status-chip status-chip--danger">Active</span>
+            </div>
+            <div class="dashboard-metric__value text-danger">{{ absent_today }}</div>
+            <span class="text-muted small">Not detected</span>
+        </article>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="row g-2 mb-2">
+    <!-- Today's Arrivals / Departures Log -->
+    <div class="col-12 col-xl-7">
+        <section class="airi-card p-2 p-md-3 h-100" aria-labelledby="todayTableHeading">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h6 mb-0 fw-bold" id="todayTableHeading"><i class="bi bi-clock-history me-1 text-primary"></i>Today's Attendance</h2>
+                <a class="btn btn-sm btn-link py-0 px-1 text-decoration-none" href="{{ url('attendance:list') }}">View All &rarr;</a>
+            </div>
+            <div class="data-table">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Dept</th>
+                            <th>IN</th>
+                            <th>OUT</th>
+                            <th>Evidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in today_attendance %}
+                        <tr>
+                            <td>
+                                {% if record.employee %}
+                                <a class="fw-semibold text-decoration-none" href="{{ url('employees:detail', record.employee.id) }}">{{ record.employee.full_name }}</a>
+                                {% else %}
+                                Unknown
+                                {% endif %}
+                            </td>
+                            <td><span class="badge text-bg-light border text-secondary">{{ record.employee.department if record.employee else "—" }}</span></td>
+                            <td class="font-monospace fw-semibold" {% if record.check_in_time %}title="Exact Time: {{ record.check_in_time|date('H:i:s') }}" style="cursor: help;"{% endif %}>{{ record.check_in_time|date("H:i")|default("—") }}</td>
+                            <td class="font-monospace fw-semibold" {% if record.check_out_time %}title="Exact Time: {{ record.check_out_time|date('H:i:s') }}" style="cursor: help;"{% endif %}>{{ record.check_out_time|date("H:i")|default("—") }}</td>
+                            <td class="text-nowrap">
+                                {% if record.check_in_snapshot %}
+                                <button class="btn btn-sm btn-outline-primary" type="button" data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN Evidence" data-evidence-subtitle="{{ record.employee_name }}"><i class="bi bi-image me-1"></i>IN</button>
+                                {% endif %}
+                                {% if record.check_out_snapshot %}
+                                <button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT Evidence" data-evidence-subtitle="{{ record.employee_name }}"><i class="bi bi-image me-1"></i>OUT</button>
+                                {% endif %}
+                                {% if not record.check_in_snapshot and not record.check_out_snapshot %}
+                                <span class="text-muted small">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3 small">No attendance records recorded yet today</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Recent Identifications Stream -->
+    <div class="col-12 col-xl-5">
+        <section class="airi-card p-2 p-md-3 h-100" aria-labelledby="recentEventsHeading">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h6 mb-0 fw-bold" id="recentEventsHeading"><i class="bi bi-broadcast me-1 text-primary"></i>Recent Identifications</h2>
+                <span class="status-chip">{{ recent_events|length }} recent</span>
+            </div>
+            <div class="vstack gap-2" style="max-height: 280px; overflow-y: auto;">
                 {% for event in recent_events %}
-                <article class="d-flex gap-3 align-items-center border-bottom pb-3">
+                <article class="d-flex gap-2 align-items-center border-bottom pb-2">
                     {% if event.snapshot %}
                     <button class="border-0 bg-transparent p-0" type="button" data-evidence-src="{{ event.snapshot }}" data-evidence-title="{{ event.employee_name }}" data-evidence-subtitle="{{ event.camera }} · {{ event.action_type }}">
-                        <img class="dashboard-evidence" src="{{ event.snapshot }}" alt="Recognition evidence for {{ event.employee_name }}" loading="lazy">
+                        <img class="dashboard-evidence" src="{{ event.snapshot }}" alt="{{ event.employee_name }}" loading="lazy">
                     </button>
                     {% else %}
-                    <span class="dashboard-evidence d-flex align-items-center justify-content-center text-muted small" aria-label="No evidence available"><i class="bi bi-image" aria-hidden="true"></i></span>
+                    <span class="dashboard-evidence d-flex align-items-center justify-content-center text-muted small" aria-label="No evidence"><i class="bi bi-image"></i></span>
                     {% endif %}
                     <div class="flex-grow-1 min-w-0">
-                        <strong class="d-block text-truncate {% if event.voided %}text-decoration-line-through text-muted{% endif %}">{{ event.employee_name }}</strong>
-                        <span class="text-muted small">{{ event.camera|default("Unknown Camera") }}</span>
-                        {% if event.voided and can_correct %}<span class="d-block text-danger small">Voided{% if event.void_reason %} · {{ event.void_reason }}{% endif %}</span>{% endif %}
+                        <strong class="d-block text-truncate small {% if event.voided %}text-decoration-line-through text-muted{% endif %}">{{ event.employee_name }}</strong>
+                        <span class="text-muted small" style="font-size: 0.7rem;">{{ event.camera|default("Camera") }}</span>
+                        {% if event.voided and can_correct %}<span class="d-block text-danger small" style="font-size: 0.68rem;">Voided{% if event.void_reason %} · {{ event.void_reason }}{% endif %}</span>{% endif %}
                         {% if can_correct %}
                         <form method="post" class="d-inline"
                               action="{{ PREFIX }}/attendance/event/{{ event.id }}/{{ 'unvoid' if event.voided else 'void' }}"
                               {% if not event.voided %}onsubmit="return confirm('{{ event.employee_name|escapejs }}? This day will be recalculated.')"{% endif %}>
                             <input type="hidden" name="next" value="{{ PREFIX }}/">
                             {% if not event.voided %}<input type="hidden" name="reason" value="not them">{% endif %}
-                            <button class="btn btn-link btn-sm p-0 text-decoration-none {{ 'text-secondary' if event.voided else 'text-danger' }}" type="submit">
-                                {{ "Undo Void" if event.voided else "Not Them" }}
+                            <button class="btn btn-link btn-sm p-0 text-decoration-none {{ 'text-secondary' if event.voided else 'text-danger' }}" style="font-size: 0.68rem;" type="submit">
+                                {{ "Undo" if event.voided else "Not Them" }}
                             </button>
                         </form>
                         {% endif %}
                     </div>
-                    <div class="text-end"><span class="status-chip {% if event.voided %}status-chip--danger{% elif event.action_type == 'IN' %}status-chip--success{% else %}status-chip--warning{% endif %}">{{ event.action_type }}</span><span class="d-block text-muted small mt-1">{{ event.timestamp|date("H:i") }} · {{ event.confidence|floatformat(3) }}</span></div>
+                    <div class="text-end">
+                        <span class="status-chip {% if event.voided %}status-chip--danger{% elif event.action_type == 'IN' %}status-chip--success{% else %}status-chip--warning{% endif %}">{{ event.action_type }}</span>
+                        <span class="d-block text-muted small mt-1 font-monospace" style="font-size: 0.68rem;">{{ event.timestamp|date("H:i") }} · {{ event.confidence|floatformat(2) }}</span>
+                    </div>
                 </article>
                 {% else %}
-                <p class="text-muted text-center py-4 mb-0">No recognitions yet</p>
+                <p class="text-muted text-center py-3 mb-0 small">No recent recognitions</p>
                 {% endfor %}
             </div>
-        </div>
-    </section>
-    {% if can_admin %}
-    <section class="col-12 col-xl-5" aria-labelledby="systemHealthHeading">
-        <div class="airi-card h-100 p-3">
-            <h2 class="h4 mb-3" id="systemHealthHeading">System Status</h2>
-            <div class="vstack gap-3">
-                {% for camera in camera_health %}
-                <article class="d-flex justify-content-between gap-3 border-bottom pb-3"><div><strong class="d-block">{{ camera.name }}</strong><span class="text-muted small">{{ camera.role }} · {{ camera.detail }}</span></div><div class="text-end"><span class="status-chip {% if camera.state == 'online' %}status-chip--success{% elif camera.state == 'offline' %}status-chip--danger{% else %}status-chip--warning{% endif %}">{{ camera.state_label }}</span><span class="d-block text-muted small mt-1">{% if camera.fps is not none %}{{ camera.fps }} FPS{% else %}FPS N/A{% endif %}{% if camera.pipeline_errors is not none %} · Errors: {{ camera.pipeline_errors }}{% endif %}</span></div></article>
-                {% else %}
-                <p class="text-muted text-center py-4 mb-0">Active cameras not configured</p>
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-    {% endif %}
+        </section>
+    </div>
 </div>
 
-<section class="airi-card p-3 mb-4" aria-labelledby="todayTableHeading">
-    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h4 mb-0" id="todayTableHeading">Today's Arrivals/Departures</h2><span class="text-muted small">{{ today|date("d.m.Y") }}</span></div>
-    <div class="data-table"><table class="table align-middle"><thead><tr><th>Employee</th><th>Department</th><th>IN</th><th>OUT</th><th>Evidence</th></tr></thead><tbody>
-        {% for record in today_attendance %}
-        <tr><td>{% if record.employee %}<a class="fw-semibold text-decoration-none" href="{{ url('employees:detail', record.employee.id) }}">{{ record.employee.full_name }}</a>{% else %}Unknown{% endif %}</td><td>{{ record.employee.department if record.employee else "—" }}</td><td>{{ record.check_in_time|date("H:i")|default("—") }}</td><td>{{ record.check_out_time|date("H:i")|default("—") }}</td><td class="text-nowrap">{% if record.check_in_snapshot %}<button class="btn btn-sm btn-outline-primary" type="button" data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN Evidence" data-evidence-subtitle="{{ record.employee_name }}">IN</button>{% endif %}{% if record.check_out_snapshot %}<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT Evidence" data-evidence-subtitle="{{ record.employee_name }}">OUT</button>{% endif %}{% if not record.check_in_snapshot and not record.check_out_snapshot %}<span class="text-muted">N/A</span>{% endif %}</td></tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center text-muted py-4">No attendance records today</td></tr>
-        {% endfor %}
-    </tbody></table></div>
-</section>
-
-<div class="row g-4">
-    <section class="col-12 col-lg-6" aria-labelledby="weeklyChartHeading"><div class="airi-card p-3 h-100"><h2 class="h4 mb-3" id="weeklyChartHeading">Weekly Attendance</h2><div class="dashboard-chart"><canvas id="weeklyChart" aria-label="Weekly attendance chart"></canvas></div></div></section>
-    <section class="col-12 col-lg-6" aria-labelledby="monthlyChartHeading"><div class="airi-card p-3 h-100"><h2 class="h4 mb-3" id="monthlyChartHeading">Monthly Attendance</h2><div class="dashboard-chart"><canvas id="monthlyChart" aria-label="Monthly attendance chart"></canvas></div></div></section>
+<!-- Secondary Row: Charts & Camera Health -->
+<div class="row g-2">
+    {% if can_admin %}
+    <div class="col-12 col-md-4">
+        <section class="airi-card p-2 p-md-3 h-100" aria-labelledby="systemHealthHeading">
+            <h2 class="h6 mb-2 fw-bold" id="systemHealthHeading"><i class="bi bi-camera-video me-1 text-primary"></i>Camera Health</h2>
+            <div class="vstack gap-2">
+                {% for camera in camera_health %}
+                <article class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                    <div>
+                        <strong class="d-block small">{{ camera.name }}</strong>
+                        <span class="text-muted small" style="font-size: 0.68rem;">{{ camera.role }} · {{ camera.detail }}</span>
+                    </div>
+                    <div class="text-end">
+                        <span class="status-chip {% if camera.state == 'online' %}status-chip--success{% elif camera.state == 'offline' %}status-chip--danger{% else %}status-chip--warning{% endif %}">{{ camera.state_label }}</span>
+                        <span class="d-block text-muted small mt-1" style="font-size: 0.68rem;">{% if camera.fps is not none %}{{ camera.fps }} FPS{% else %}FPS N/A{% endif %}{% if camera.pipeline_errors is not none %} · Err: {{ camera.pipeline_errors }}{% endif %}</span>
+                    </div>
+                </article>
+                {% else %}
+                <p class="text-muted text-center py-2 mb-0 small">No active cameras configured</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    {% endif %}
+    <div class="col-12 {% if can_admin %}col-md-4{% else %}col-md-6{% endif %}">
+        <section class="airi-card p-2 p-md-3 h-100" aria-labelledby="weeklyChartHeading">
+            <h2 class="h6 mb-2 fw-bold" id="weeklyChartHeading"><i class="bi bi-graph-up me-1 text-primary"></i>Weekly Trend</h2>
+            <div class="dashboard-chart" style="height: 120px;"><canvas id="weeklyChart" aria-label="Weekly attendance chart"></canvas></div>
+        </section>
+    </div>
+    <div class="col-12 {% if can_admin %}col-md-4{% else %}col-md-6{% endif %}">
+        <section class="airi-card p-2 p-md-3 h-100" aria-labelledby="monthlyChartHeading">
+            <h2 class="h6 mb-2 fw-bold" id="monthlyChartHeading"><i class="bi bi-bar-chart me-1 text-primary"></i>Monthly Trend</h2>
+            <div class="dashboard-chart" style="height: 120px;"><canvas id="monthlyChart" aria-label="Monthly attendance chart"></canvas></div>
+        </section>
+    </div>
 </div>
 {% endblock %}
 

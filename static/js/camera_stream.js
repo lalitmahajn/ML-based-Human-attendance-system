@@ -324,12 +324,18 @@ function airiHttpUrl(path) {
                     context.drawImage(image, 0, 0);
                     stream.card.querySelector('[data-stream-placeholder]')?.setAttribute('hidden', '');
                     const fps = stream.card.querySelector('[data-camera-metric="camera-fps"]');
+                    const algoFps = stream.card.querySelector('[data-camera-metric="algorithm-fps"]');
                     const lastFrame = stream.card.querySelector('[data-camera-metric="last-frame"]');
                     const latency = stream.card.querySelector('[data-camera-metric="latency"]');
                     if (fps && data.fps !== undefined) {
                         const frameFps = Number(data.fps);
                         fps.textContent = Number.isFinite(frameFps) && frameFps > 0
                             ? String(data.fps) : 'Not Available';
+                    }
+                    if (algoFps && data.algo_fps !== undefined) {
+                        const aFps = Number(data.algo_fps);
+                        algoFps.textContent = Number.isFinite(aFps) && aFps > 0
+                            ? String(data.algo_fps) : 'Not Available';
                     }
                     if (lastFrame) lastFrame.textContent = new Date().toLocaleTimeString();
                     if (latency && data.delay_ms !== undefined) latency.textContent = `${data.delay_ms} ms`;

@@ -403,8 +403,8 @@ class ReplaySource:
             # start within milliseconds of each other and land in the same
             # slot either way, but rounding up to the span made the first
             # frame wait up to the length of the entire schedule.
-            span = max(o + self._duration(p) for o, p in plan) + 10.0
-            epoch = (int(time.time() / 5.0) + 1) * 5.0
+            span = max(o + self._duration(p) for o, p in plan) + 1.0
+            epoch = time.time() if len(plan) <= 1 else (int(time.time()) + 1.0)
 
             for offset, path in plan:
                 if self._stop.is_set():
@@ -455,10 +455,8 @@ class ReplaySource:
 
             if not self.loop:
                 break
-            # Long enough for every track to age out and be decided, rather
-            # than merging into the first pass of the next loop.
-            self.connected = False
-            if self._stop.wait(settings.track_max_age_s + 2.0):
+            # Brief 1.2s settling pause between loops for clean track finalization
+            if self._stop.wait(1.2):
                 break
 
         self.connected = False

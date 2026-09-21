@@ -1,38 +1,128 @@
 {% extends "base.html" %}
 {% block title %}Attendance{% endblock %}
 {% block content %}
-<section class="page-header d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-end" aria-labelledby="attendanceHeading">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
     <div>
-        <p class="eyebrow">AIRI · Attendance</p>
-        <h1 id="attendanceHeading">Attendance Records</h1>
-        <p class="text-muted mb-0">Review employee arrivals/departures and evidence.</p>
+        <h1 class="h6 mb-0 fw-bold d-inline-block me-2">Attendance Records</h1>
+        <span class="text-muted small">Employee arrivals, departures, and evidence logs.</span>
     </div>
-</section>
+    <a href="{{ url('attendance:export') }}?{{ request.query_params }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-download me-1"></i>CSV Export</a>
+</div>
 
-<section class="airi-card p-3 p-lg-4" aria-labelledby="attendanceFiltersHeading">
-    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
-        <div>
-            <h2 class="h5 mb-1" id="attendanceFiltersHeading">Filters</h2>
-            <p class="text-muted small mb-0">Search by date range, employee, and status.</p>
+<section class="airi-card p-2 p-md-3 mb-2" aria-labelledby="attendanceFiltersHeading">
+    {% if range_notice %}<div class="alert alert-info py-1 mb-2 small" role="status">{{ range_notice }}</div>{% endif %}
+    {% if cap_notice %}<div class="alert alert-warning py-1 mb-2 small" role="status" data-range-cap>{{ cap_notice }}</div>{% endif %}
+    <form method="get" class="row g-2 align-items-end" data-attendance-filters>
+        <div class="col-12 col-md-3">
+            <label class="form-label" for="query">Search Employee</label>
+            <input class="form-control" type="search" name="query" id="query" value="{{ query }}" placeholder="Name or ID">
         </div>
-        <a href="{{ url('attendance:export') }}?{{ request.query_params }}" class="btn btn-outline-primary align-self-lg-start"><i class="bi bi-download me-1" aria-hidden="true"></i>CSV Export</a>
-    </div>
-    {% if range_notice %}<div class="alert alert-info py-2" role="status">{{ range_notice }}</div>{% endif %}
-    {% if cap_notice %}<div class="alert alert-warning py-2" role="status" data-range-cap>{{ cap_notice }}</div>{% endif %}
-    <form method="get" class="row g-3" data-attendance-filters>
-        <div class="col-12 col-md-6 col-xl-3"><label class="form-label" for="query">Search Employee</label><input class="form-control" type="search" name="query" id="query" value="{{ query }}" placeholder="Name or ID"></div>
-        <div class="col-12 col-md-6 col-xl-2"><label class="form-label" for="department">Department</label><select class="form-select" name="department" id="department"><option value="">All Departments</option>{% for value in departments %}<option value="{{ value }}" {% if department == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
-        <div class="col-6 col-xl-2"><label class="form-label" for="start_date">Start Date</label><input class="form-control" type="date" name="start_date" id="start_date" value="{{ start_date }}"></div>
-        <div class="col-6 col-xl-2"><label class="form-label" for="end_date">End Date</label><input class="form-control" type="date" name="end_date" id="end_date" value="{{ end_date }}"></div>
-        <div class="col-12 col-md-6 col-xl-2"><label class="form-label" for="status">Status</label><select class="form-select" name="status" id="status"><option value="">All Statuses</option><option value="PRESENT" {% if status == 'PRESENT' %}selected{% endif %}>Present</option><option value="NO_CHECKIN" {% if status == 'NO_CHECKIN' %}selected{% endif %}>No Check-In</option><option value="NO_CHECKOUT" {% if status == 'NO_CHECKOUT' %}selected{% endif %}>No Check-Out</option><option value="ABSENT" {% if status == 'ABSENT' %}selected{% endif %}>Absent</option></select></div>
-        <div class="col-12 d-flex flex-wrap gap-2 align-items-center"><button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1" aria-hidden="true"></i>Apply</button><a class="btn btn-outline-secondary" href="{{ url('attendance:list') }}">Clear</a><span class="vr d-none d-sm-inline-block"></span><button class="btn btn-sm btn-outline-primary" type="button" data-attendance-shortcut="15-days">15 Days</button><button class="btn btn-sm btn-outline-primary" type="button" data-attendance-shortcut="one-month">One Month</button></div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="department">Department</label>
+            <select class="form-select" name="department" id="department">
+                <option value="">All Departments</option>
+                {% for value in departments %}<option value="{{ value }}" {% if department == value %}selected{% endif %}>{{ value }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="start_date">Start Date</label>
+            <input class="form-control" type="date" name="start_date" id="start_date" value="{{ start_date }}">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="end_date">End Date</label>
+            <input class="form-control" type="date" name="end_date" id="end_date" value="{{ end_date }}">
+        </div>
+        <div class="col-6 col-md-1">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-select" name="status" id="status">
+                <option value="">All</option>
+                <option value="PRESENT" {% if status == 'PRESENT' %}selected{% endif %}>Present</option>
+                <option value="NO_CHECKIN" {% if status == 'NO_CHECKIN' %}selected{% endif %}>No IN</option>
+                <option value="NO_CHECKOUT" {% if status == 'NO_CHECKOUT' %}selected{% endif %}>No OUT</option>
+                <option value="ABSENT" {% if status == 'ABSENT' %}selected{% endif %}>Absent</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-2 d-flex gap-1 align-items-center">
+            <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Filter</button>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url('attendance:list') }}" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+            <button class="btn btn-sm btn-outline-primary" type="button" data-attendance-shortcut="15-days" title="Last 15 Days">15d</button>
+            <button class="btn btn-sm btn-outline-primary" type="button" data-attendance-shortcut="one-month" title="Last 30 Days">30d</button>
+        </div>
     </form>
 </section>
 
-<section class="airi-card p-3 p-lg-4 mt-4" aria-labelledby="attendanceTableHeading">
-    <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h5 mb-1" id="attendanceTableHeading">Attendance Log</h2><p class="text-muted small mb-0">{{ start_date|date('d.m.Y') }} — {{ end_date|date('d.m.Y') }}</p></div><span class="text-muted small">{{ records|length }} records</span></div>
-    <div class="data-table"><table class="table table-hover align-middle"><thead><tr><th>Date</th><th>Employee</th><th>Department</th><th>IN</th><th>OUT</th><th>Worked Time</th><th>Status</th><th>IN/OUT Evidence</th><th>Details</th></tr></thead><tbody>
-        {% for record in records %}<tr><td class="text-nowrap">{{ record.date|date('d.m.Y') }}</td><td>{% if record.employee %}<a class="fw-semibold text-decoration-none" href="{{ url('employees:detail', record.employee.id) }}">{{ record.employee.full_name }}</a><small class="d-block text-muted">{{ record.employee.employee_id|default('No ID assigned') }}</small>{% else %}Unknown{% endif %}</td><td>{{ record.employee.department if record.employee else '—' }}</td><td>{{ record.check_in_time|date('H:i')|default('—') }}</td><td>{{ record.check_out_time|date('H:i')|default('—') }}</td><td>{{ record.working_hours|duration_hm|default('—') }}</td><td>{% if record.status == 'PRESENT' %}<span class="status-chip status-chip--success">Present</span>{% elif record.status == 'NO_CHECKIN' %}<span class="status-chip status-chip--warning">No Check-In</span>{% elif record.status == 'NO_CHECKOUT' %}<span class="status-chip status-chip--warning">No Check-Out</span>{% elif record.status == 'ABSENT' %}<span class="status-chip status-chip--danger">Absent</span>{% else %}<span class="status-chip status-chip--danger">{{ record.status }}</span>{% endif %}</td><td class="text-nowrap">{% if record.check_in_snapshot %}<button class="btn btn-sm btn-outline-primary" type="button" data-airi-evidence data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN Evidence" data-evidence-subtitle="{{ record.employee_name }} · {{ record.date|date('d.m.Y') }}">IN</button>{% endif %}{% if record.check_out_snapshot %}<button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-airi-evidence data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT Evidence" data-evidence-subtitle="{{ record.employee_name }} · {{ record.date|date('d.m.Y') }}">OUT</button>{% endif %}{% if not record.check_in_snapshot and not record.check_out_snapshot %}<span class="text-muted small">No Evidence</span>{% endif %}</td><td class="text-nowrap">{% if record.employee %}<a class="btn btn-sm btn-link" href="{{ url('employees:detail', record.employee.id) }}">View</a><a class="btn btn-sm btn-link" href="{{ PREFIX }}/attendance/day/{{ record.employee.id }}/{{ record.date }}">Events</a>{% else %}—{% endif %}</td></tr>
+<section class="airi-card p-2 p-md-3" aria-labelledby="attendanceTableHeading">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <h2 class="h6 mb-0 fw-bold d-inline-block me-2" id="attendanceTableHeading">Attendance Log</h2>
+            <small class="text-muted">{{ start_date|date('d.m.Y') }} — {{ end_date|date('d.m.Y') }}</small>
+        </div>
+        <span class="status-chip"><span class="badge text-bg-primary rounded-pill me-1">{{ records|length }}</span> records</span>
+    </div>
+    <div class="data-table">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>IN</th>
+                    <th>OUT</th>
+                    <th>Worked Time</th>
+                    <th>Status</th>
+                    <th>IN/OUT Evidence</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% for record in records %}
+            <tr>
+                <td class="text-nowrap fw-medium">{{ record.date|date('d.m.Y') }}</td>
+                <td>
+                    {% if record.employee %}
+                    <a class="fw-semibold text-decoration-none" href="{{ url('employees:detail', record.employee.id) }}">{{ record.employee.full_name }}</a>
+                    <small class="d-block text-muted">{{ record.employee.employee_id|default('No ID assigned') }}</small>
+                    {% else %}
+                    Unknown
+                    {% endif %}
+                </td>
+                <td><span class="badge text-bg-light border text-secondary">{{ record.employee.department if record.employee else '—' }}</span></td>
+                <td class="font-monospace fw-semibold" {% if record.check_in_time %}title="Exact Time: {{ record.check_in_time|date('H:i:s') }}" style="cursor: help;"{% endif %}>{{ record.check_in_time|date('H:i')|default('—') }}</td>
+                <td class="font-monospace fw-semibold" {% if record.check_out_time %}title="Exact Time: {{ record.check_out_time|date('H:i:s') }}" style="cursor: help;"{% endif %}>{{ record.check_out_time|date('H:i')|default('—') }}</td>
+                <td class="font-monospace">{{ record.working_hours|duration_hm|default('—') }}</td>
+                <td>
+                    {% if record.status == 'PRESENT' %}
+                    <span class="status-chip status-chip--success">Present</span>
+                    {% elif record.status == 'NO_CHECKIN' %}
+                    <span class="status-chip status-chip--warning">No Check-In</span>
+                    {% elif record.status == 'NO_CHECKOUT' %}
+                    <span class="status-chip status-chip--warning">No Check-Out</span>
+                    {% elif record.status == 'ABSENT' %}
+                    <span class="status-chip status-chip--danger">Absent</span>
+                    {% else %}
+                    <span class="status-chip status-chip--danger">{{ record.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-nowrap">
+                    {% if record.check_in_snapshot %}
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-airi-evidence data-evidence-src="{{ record.check_in_snapshot }}" data-evidence-title="IN Evidence" data-evidence-subtitle="{{ record.employee_name }} · {{ record.date|date('d.m.Y') }}"><i class="bi bi-image me-1"></i>IN</button>
+                    {% endif %}
+                    {% if record.check_out_snapshot %}
+                    <button class="btn btn-sm btn-outline-secondary ms-1" type="button" data-airi-evidence data-evidence-src="{{ record.check_out_snapshot }}" data-evidence-title="OUT Evidence" data-evidence-subtitle="{{ record.employee_name }} · {{ record.date|date('d.m.Y') }}"><i class="bi bi-image me-1"></i>OUT</button>
+                    {% endif %}
+                    {% if not record.check_in_snapshot and not record.check_out_snapshot %}
+                    <span class="text-muted small">No Evidence</span>
+                    {% endif %}
+                </td>
+                <td class="text-nowrap">
+                    {% if record.employee %}
+                    <a class="btn btn-sm btn-link" href="{{ url('employees:detail', record.employee.id) }}">View</a>
+                    <a class="btn btn-sm btn-link" href="{{ PREFIX }}/attendance/day/{{ record.employee.id }}/{{ record.date }}">Events</a>
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+            </tr>
         {% else %}<tr><td colspan="9" class="text-center text-muted py-5"><i class="bi bi-calendar-x d-block fs-2 mb-2" aria-hidden="true"></i>No attendance records found for the selected filters.</td></tr>{% endfor %}
     </tbody></table></div>
 </section>

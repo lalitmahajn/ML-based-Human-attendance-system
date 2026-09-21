@@ -29,6 +29,8 @@ function applyTheme(theme, { persist = false } = {}) {
     const isDark = selectedTheme === 'dark';
 
     root.dataset.theme = selectedTheme;
+    root.dataset.bsTheme = selectedTheme;
+    root.setAttribute('data-bs-theme', selectedTheme);
     if (toggle) {
         toggle.setAttribute('aria-pressed', String(isDark));
         toggle.setAttribute('aria-label', isDark ? "Dark Theme" : "Light Theme");

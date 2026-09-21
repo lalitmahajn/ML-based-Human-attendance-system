@@ -254,7 +254,7 @@ def build_env() -> Environment:
         today=lambda: datetime.now(settings.tz).date(),
         user=_User(),
         DEBUG=False,
-        STATIC_VERSION="3.1.0",
+        STATIC_VERSION="3.2.0",
         current_view="",
     )
     return env

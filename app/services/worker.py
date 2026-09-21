@@ -83,6 +83,7 @@ class CameraWorker:
         self._lock = threading.Lock()
         self.recent_events: list[dict] = []
         self.frames_seen = 0
+        self.algorithm_fps: float = 0.0
         # Timestamp of the previous frame, to notice a break in the stream.
         self._last_frame_ts = 0.0
         # Person-pass accounting. A completed track is roughly one pass, and is
@@ -420,6 +421,8 @@ class CameraWorker:
     def _run(self):
         log.info("[%s] worker started (role=%s)", self.name, self.role.value)
         nth = 0
+        t_proc_fps = time.time()
+        n_proc_fps = 0
         while not self._stop.is_set():
             frame = self.source.read(timeout=1.0)
             if frame is None:
@@ -471,6 +474,12 @@ class CameraWorker:
                 continue
             with self._lock:
                 self.latest = res
+
+            n_proc_fps += 1
+            now_proc = time.time()
+            if now_proc - t_proc_fps >= 1.5:
+                self.algorithm_fps = round(n_proc_fps / (now_proc - t_proc_fps), 1)
+                n_proc_fps, t_proc_fps = 0, now_proc
 
             # Tell the arbiter who this camera still has in view, so a pass
             # waiting to be decided is not decided while its person's other
@@ -543,7 +552,8 @@ class CameraWorker:
             cv2.putText(img, label, (x1 + 3, max(10, y1 - 4)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
-        banner = f"{self.name} [{self.role.value}]  {self.source.fps:.0f}fps  {res.timings['total']:.0f}ms"
+        algo_fps = getattr(self, "algorithm_fps", 0.0)
+        banner = f"{self.name} [{self.role.value}]  cam:{self.source.fps:.0f}fps  algo:{algo_fps:.0f}fps  {res.timings['total']:.0f}ms"
         cv2.putText(img, banner, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3, cv2.LINE_AA)
         cv2.putText(img, banner, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
 
@@ -556,6 +566,7 @@ class CameraWorker:
         return {
             "camera_id": self.camera_id, "name": self.name, "role": self.role.value,
             "stream": self.source.stats(),
+            "algorithm_fps": getattr(self, "algorithm_fps", 0.0),
             "frames_processed": self.pipeline.frames_processed,
             "faces_embedded": self.pipeline.faces_embedded,
             "active_tracks": len(self.pipeline.tracks),

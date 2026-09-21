@@ -1192,7 +1192,7 @@ def _camera_diagnostics_context(cameras: list[Camera]) -> list[dict]:
                 ),
             },
             "pipeline": {
-                "fps": _algorithm_fps(observed_fps),
+                "fps": _algorithm_fps(observed_fps, pipeline.get("algorithm_fps"), (pipeline.get("timings") or {}).get("total")),
                 "latency_ms": _positive_number((pipeline.get("timings") or {}).get("total")),
                 "errors": pipeline.get("pipeline_errors"),
                 "last_error": pipeline.get("last_error"),
@@ -1228,14 +1228,18 @@ def _positive_number(value):
     return float(value)
 
 
-def _algorithm_fps(stream_fps) -> float | None:
-    """What the pipeline actually processes, derived rather than read.
+def _algorithm_fps(stream_fps, actual_fps=None, latency_ms=None) -> float | None:
+    """Return true observed algorithm processing FPS.
 
-    The worker runs every `process_every_nth` frame of the stream and keeps no
-    rate counter of its own. The keys these pages used to look for -
-    `processed_fps`, `algorithm_fps`, `pipeline_fps` - were never emitted by
-    CameraWorker.stats(), so the cell said "Mavjud emas" on a healthy camera.
+    Uses the worker's measured processing rate when available, or calculates
+    exact throughput from frame latency (1000 / latency_ms). Falls back to
+    paced stream rate if latency is uninitialized.
     """
+    if actual_fps is not None and isinstance(actual_fps, (int, float)) and actual_fps > 0:
+        return round(float(actual_fps), 1)
+    lat = _positive_number(latency_ms)
+    if lat is not None and lat > 0:
+        return round(min(60.0, 1000.0 / lat), 1)
     fps = _positive_number(stream_fps)
     if fps is None:
         return None
@@ -1333,7 +1337,7 @@ def _live_camera_context(cameras: list[Camera]) -> list[dict]:
             "state": state, "state_label": state_label, "state_detail": state_detail,
             "resolution": _available_resolution(stream.get("resolution")),
             "camera_fps": _positive_number(stream.get("fps")),
-            "algorithm_fps": _algorithm_fps(stream.get("fps")),
+            "algorithm_fps": _algorithm_fps(stream.get("fps"), stats.get("algorithm_fps"), timings.get("total")),
             "latency_ms": _positive_number(timings.get("total")),
             "last_frame": _last_frame_label(last_frame_ts),
             "pipeline_errors": pipeline_errors, "pipeline_status": pipeline_status,

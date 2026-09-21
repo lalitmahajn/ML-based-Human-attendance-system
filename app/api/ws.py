@@ -21,12 +21,13 @@ from app.core.security import COOKIE_NAME, read_session
 from app.services import auth as auth_svc
 from app.web.viewmodels import live_event
 
+from app.config import settings
 from app.runtime import runtime
 
 log = logging.getLogger(__name__)
 router = APIRouter()
 
-FPS = 10
+FPS = settings.live_preview_fps
 
 # One JPEG per processed frame, however many viewers are watching. Each
 # connection used to call worker.render() for itself - a resize of a 4K frame
@@ -80,13 +81,18 @@ def frame_message(worker, camera_id: int) -> dict | None:
         return {"type": "frame", "stale": True, "camera_id": camera_id,
                 "fps": round(source.fps, 1)}
     jpg = shared_jpeg(worker)
-    if not jpg:
-        return None
+    latest = getattr(worker, "latest", None)
+    total_ms = (latest.timings or {}).get("total") if latest else None
+    algo_fps = getattr(worker, "algorithm_fps", 0.0)
+    if (not algo_fps or algo_fps <= 0) and total_ms:
+        algo_fps = round(min(60.0, 1000.0 / max(1.0, float(total_ms))), 1)
     return {
         "type": "frame",
         "data": base64.b64encode(jpg).decode("ascii"),
         "camera_id": camera_id,
         "fps": round(source.fps, 1),
+        "algo_fps": algo_fps,
+        "delay_ms": round(float(total_ms), 1) if total_ms is not None else None,
         "stale": False,
     }
 

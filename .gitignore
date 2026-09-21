@@ -75,6 +75,7 @@ dmypy.json
 
 # Logs
 *.log
+scratch/
 
 # Local settings.  Anchored to the repo root ON PURPOSE: an unanchored
 # `config.py` also matches app/config.py, which is the application's central
