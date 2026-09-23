@@ -42,18 +42,8 @@ State Machine & Attendance  ◄──  Virtual Tripwire  ◄──  AdaFace IR-5
 
 ## Quick Start
 
-> [!TIP]
-> **🤖 Automated Setup for AI Agents & Developers**:
-> If you are an AI assistant or developer setting up on a fresh machine, run this single sequence to configure environment variables, download all neural weights, convert ONNX models, initialize the database, and verify CUDA GPU execution:
-> ```powershell
-> python -m venv venv
-> .\venv\Scripts\Activate.ps1             # On Linux: source venv/bin/activate
-> pip install -r requirements.txt
-> pip install onnxruntime-gpu==1.23.2
-> python scripts/setup_project.py        # Automated 5-step installer & validator
-> python scripts/run.py                  # Launch server on http://127.0.0.1:8000
-> ```
-> *AI Agents*: Please consult [AGENTS.md](AGENTS.md) for architecture rules, active hardware profile, and model mappings before reading legacy historical docs.
+> [!NOTE]
+> **AI Agents & Automated Tools**: Please consult [AGENTS.md](AGENTS.md) for architectural guidelines, active hardware profile, and model mappings before reading legacy historical docs in `docs/`. The active pipeline runs on public open models (`yolov8n-face.onnx`, `adaface_ir50_base.onnx`, `dfa_mobilenet_aligner.onnx`) with 100% GPU acceleration.
 
 ---
 
@@ -62,7 +52,7 @@ State Machine & Attendance  ◄──  Virtual Tripwire  ◄──  AdaFace IR-5
 * NVIDIA GPU with CUDA 12+ and cuDNN 9+
 * Windows 11 / Windows Server or Linux (Ubuntu 22.04 / 24.04)
 
-### 2. Manual Step-by-Step Environment Setup
+### 2. Environment Setup
 ```powershell
 # Clone the repository
 git clone https://github.com/lalitmahajn/ML-based-Human-attendance-system.git
