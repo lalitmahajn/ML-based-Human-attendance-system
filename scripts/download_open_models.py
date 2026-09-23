@@ -46,6 +46,12 @@ def main():
     if not dfa_onnx_path.exists():
         print("Exporting CVLFace DFA Mobilenet to ONNX...")
         try:
+            if not cvlface_dir.exists():
+                import subprocess
+                print("Cloning CVLface vendor repo for DFA aligner export...")
+                vendor_dir.mkdir(parents=True, exist_ok=True)
+                subprocess.check_call(["git", "clone", "--depth", "1", "https://github.com/mk-minchul/CVLface.git", str(cvlface_dir)])
+
             repo_id = "minchul/cvlface_DFA_mobilenet"
             from cvlface.research.recognition.code.run_v1.aligners import get_aligner
             from omegaconf import OmegaConf
