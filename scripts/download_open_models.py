@@ -52,8 +52,9 @@ def main():
                 vendor_dir.mkdir(parents=True, exist_ok=True)
                 subprocess.check_call(["git", "clone", "--depth", "1", "https://github.com/mk-minchul/CVLface.git", str(cvlface_dir)])
 
-            repo_id = "minchul/cvlface_DFA_mobilenet"
-            from cvlface.research.recognition.code.run_v1.aligners import get_aligner
+            import importlib
+            aligners_mod = importlib.import_module("cvlface.research.recognition.code.run_v1.aligners")
+            get_aligner = aligners_mod.get_aligner
             from omegaconf import OmegaConf
             
             model_safetensors_path = hf_hub_download(repo_id=repo_id, filename="model.safetensors")
