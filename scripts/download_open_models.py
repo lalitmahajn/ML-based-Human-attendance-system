@@ -57,6 +57,7 @@ def main():
             get_aligner = aligners_mod.get_aligner
             from omegaconf import OmegaConf
             
+            repo_id = "minchul/cvlface_DFA_mobilenet"
             model_safetensors_path = hf_hub_download(repo_id=repo_id, filename="model.safetensors")
             
             cfg = OmegaConf.create({
