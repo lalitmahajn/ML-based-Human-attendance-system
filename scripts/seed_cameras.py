@@ -8,8 +8,11 @@ from sqlalchemy import select
 from app.db.models import Camera, CameraRole
 from app.db.session import init_db, session_scope
 
-from app.config import camera_credentials
-USER, PWD = camera_credentials()
+import os
+USER = os.environ.get("CAMERA_USER", "admin")
+PWD = os.environ.get("CAMERA_PASSWORD", "admin123")
+if "CAMERA_PASSWORD" not in os.environ:
+    print("  Notice: CAMERA_PASSWORD not set in env; registered placeholder RTSP credentials (update in /cameras if needed).")
 CAMS = [
     ("Entrance", CameraRole.IN,  "192.168.1.2",  "corridor, high mount, wide angle"),
     ("Exit",     CameraRole.OUT, "192.168.1.64", "corridor, high mount, wide angle"),
