@@ -62,7 +62,68 @@ pip install -r requirements.txt
 pip install onnxruntime-gpu==1.23.2
 ```
 
-### 3. Environment Variables (`.env`)
+### 3. Download & Convert Models (`models/`)
+
+The attendance pipeline requires 3 neural models in the `models/` folder. Because raw weights are excluded from Git, you can set them up automatically or manually:
+
+#### Option A: One-Click Automated Setup (Recommended)
+Run the built-in downloader and ONNX converter:
+```powershell
+python scripts/download_open_models.py
+```
+This automatically:
+1. Downloads `yolov8n-face.pt` from HuggingFace.
+2. Converts & exports `yolov8n-face.onnx` with dynamic axes (`batch, 3, height, width`) for GPU acceleration.
+3. Downloads the open-source AdaFace IR-50 base recognizer (`adaface_ir50_base.onnx`).
+4. Builds the DFA MobileNet canonical landmark aligner (`dfa_mobilenet_aligner.onnx`).
+5. Validates tensor shapes and ONNX runtime input/output compatibility.
+
+#### Option B: Manual Download & Conversion
+
+If you prefer to download and convert the models manually:
+
+1. **Face Detector (`yolov8n-face.onnx`)**:
+   - Download PyTorch weights:
+     ```powershell
+     curl -L -o models/yolov8n-face.pt https://huggingface.co/junjiang/GestureFace/resolve/main/yolov8n-face.pt
+     ```
+   - Convert to ONNX with dynamic input shapes:
+     ```powershell
+     # Using Ultralytics CLI:
+     yolo export model=models/yolov8n-face.pt format=onnx imgsz=640 dynamic=True
+
+     # Or using Python:
+     python -c "from ultralytics import YOLO; YOLO('models/yolov8n-face.pt').export(format='onnx', imgsz=640, dynamic=True)"
+     ```
+     Ensure the exported file is placed at `models/yolov8n-face.onnx`.
+
+2. **Face Recognizer (`adaface_ir50_base.onnx`)**:
+   - Download the 512-D embedding model directly (~174 MB):
+     ```powershell
+     curl -L -o models/adaface_ir50_base.onnx https://huggingface.co/globalnebula/adaface-ir50-ms1mv2-onnx/resolve/main/adaface_ir50_ms1mv2.onnx
+     ```
+
+3. **Facial Aligner (`dfa_mobilenet_aligner.onnx`)**:
+   - Built from CVLFace MobileNet landmark aligner. Run the exporter to generate `models/dfa_mobilenet_aligner.onnx`:
+     ```powershell
+     python scripts/download_open_models.py
+     ```
+
+#### Verify Model Setup
+Check that all 3 ONNX models load properly:
+```powershell
+python scripts/download_open_models.py
+```
+You should see:
+```text
+Validated yolov8n-face.onnx:       Input: ['batch', 3, 'height', 'width']  Output: ['batch', ...]
+Validated adaface_ir50_base.onnx:  Input: ['batch', 3, 112, 112]          Output: ['batch', 512]
+Validated dfa_mobilenet_aligner.onnx: Input: ['batch_size', 3, 160, 160]   Output: ldmk, bbox, score
+```
+
+---
+
+### 4. Environment Variables (`.env`)
 Create a `.env` file in the project root:
 ```ini
 detector_model="yolov8n-face.onnx"
@@ -73,7 +134,7 @@ recognition_threshold_override=0.20
 secret_key="your_secure_random_key_here"
 ```
 
-### 4. Seed Cameras & Launch Server
+### 5. Seed Cameras & Launch Server
 ```powershell
 # Register default cameras in the SQLite database
 python scripts/seed_cameras.py

@@ -26,6 +26,19 @@ def main():
     yolo_path = models_dir / "yolov8n-face.pt"
     download_file("https://huggingface.co/junjiang/GestureFace/resolve/main/yolov8n-face.pt", yolo_path)
 
+    yolo_onnx_path = models_dir / "yolov8n-face.onnx"
+    if not yolo_onnx_path.exists():
+        print("Exporting YOLOv8n-face to ONNX (dynamic=True)...")
+        from ultralytics import YOLO
+        yolo_model = YOLO(str(yolo_path))
+        exported_path = yolo_model.export(format="onnx", imgsz=640, dynamic=True)
+        if Path(exported_path) != yolo_onnx_path and Path(exported_path).exists():
+            import shutil
+            shutil.move(str(exported_path), str(yolo_onnx_path))
+        print("YOLOv8n-face exported to ONNX successfully.")
+    else:
+        print("yolov8n-face.onnx already exists.")
+
     adaface_path = models_dir / "adaface_ir50_base.onnx"
     download_file("https://huggingface.co/globalnebula/adaface-ir50-ms1mv2-onnx/resolve/main/adaface_ir50_ms1mv2.onnx", adaface_path)
 
@@ -113,7 +126,7 @@ def main():
             import traceback
             traceback.print_exc()
 
-    for onnx_file in [adaface_path, dfa_onnx_path]:
+    for onnx_file in [yolo_onnx_path, adaface_path, dfa_onnx_path]:
         if onnx_file.exists():
             try:
                 session = onnxruntime.InferenceSession(str(onnx_file), providers=['CPUExecutionProvider'])
